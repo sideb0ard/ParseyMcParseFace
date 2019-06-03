@@ -1,0 +1,8 @@
+parsey.dSYM/
+parsey_test
+parsey_test.dSYM/
+lexer_test
+lexer_test.dSYM/
+*.o
+*.a
+parsey
