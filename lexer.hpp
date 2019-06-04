@@ -2,7 +2,9 @@
 
 #include <string>
 
-#include "lexical_token.hpp"
+#include "token.hpp"
+
+using namespace token;
 
 namespace lexer
 {

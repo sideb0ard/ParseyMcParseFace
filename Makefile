@@ -12,8 +12,10 @@ CXXFLAGS += -g -Wall -Wextra -pthread -std=c++17
 # Google Test libraries
 GTEST_LIBS = libgtest.a libgtest_main.a
 
-DEPS = parsey.hpp
-OBJ = parsey.cpp lexer.cpp lexical_token.cpp
+DEPS = parsey.hpp lexer.hpp token.hpp
+MAIN = parsey.cpp
+TARGET = slang
+OBJ = lexer.cpp token.cpp
 TESTS = lexer_test.cpp
 INC=-I${HOME}/Code/range-v3/include/
 
@@ -23,10 +25,13 @@ GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
                 $(GTEST_DIR)/include/gtest/internal/*.h
 
 
+all: $(TARGET)
+
+
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CPPFLAGS) $(INC)
 
-parsey: $(OBJ)
+$(TARGET): $(MAIN) $(OBJ)
 	$(CC) $(CPPFLAGS) $(INC) $(CXXFLAGS) $^ -o $@
 
 lexer_test: $(GTEST_LIBS) $(TESTS) $(OBJ)

@@ -4,7 +4,7 @@
 
 using TokenType = std::string;
 
-namespace lexer
+namespace token
 {
 const TokenType ILLEGAL = "ILLEGAL";
 const TokenType EOFF = "EOF";
@@ -57,4 +57,4 @@ class Token
 
 TokenType LookupIdent(std::string ident);
 
-} // namespace lexer
+} // namespace token

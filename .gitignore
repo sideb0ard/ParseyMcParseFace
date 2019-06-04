@@ -6,3 +6,5 @@ lexer_test.dSYM/
 *.o
 *.a
 parsey
+*.dSYM/
+slang

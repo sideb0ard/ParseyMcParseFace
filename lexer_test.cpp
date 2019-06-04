@@ -3,9 +3,10 @@
 #include "gtest/gtest.h"
 
 #include "lexer.hpp"
-#include "lexical_token.hpp"
+#include "token.hpp"
 
 using namespace lexer;
+using namespace token;
 
 namespace
 {

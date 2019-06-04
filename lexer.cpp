@@ -17,7 +17,8 @@ Lexer::Lexer(std::string input) : input_{input} { ReadChar(); }
 
 void Lexer::ReadChar()
 {
-    if (next_position_ >= static_cast<int>(input_.length()))
+    const int len = input_.length();
+    if (next_position_ >= len)
         current_char_ = 0;
     else
         current_char_ = input_[next_position_];

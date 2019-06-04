@@ -4,21 +4,23 @@
 #include <string>
 
 #include "lexer.hpp"
-#include "lexical_token.hpp"
+#include "token.hpp"
 
 using namespace lexer;
+using namespace token;
 
 int main()
 {
     const std::string prompt = ">> ";
 
-    std::string input;
-
     std::cout << prompt;
-    while (!std::getline(std::cin, input).fail())
+    for (std::string input; std::getline(std::cin, input);)
     {
         if (input.empty())
-            break;
+        {
+            std::cout << prompt;
+            continue;
+        }
 
         Lexer lex{input};
 

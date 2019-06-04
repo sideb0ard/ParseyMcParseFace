@@ -2,9 +2,9 @@
 #include <string>
 #include <unordered_map>
 
-#include "lexical_token.hpp"
+#include "token.hpp"
 
-namespace lexer
+namespace token
 {
 const std::unordered_map<std::string, TokenType> keywords{
     {"fn", FUNCTION}, {"let", LET},   {"true", TRUE},    {"false", FALSE},
@@ -25,4 +25,4 @@ std::ostream &operator<<(std::ostream &out, const Token &tok)
     return out;
 }
 
-} // namespace lexer
+} // namespace token
