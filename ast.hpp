@@ -1,4 +1,7 @@
+#pragma once
+
 #include <string>
+#include <vector>
 
 #include "token.hpp"
 
@@ -6,6 +9,7 @@ using namespace token;
 
 namespace ast
 {
+
 class Node
 {
   public:
@@ -13,26 +17,56 @@ class Node
 
   private:
     TokenType literal_;
-}
+};
 
-class Statement : public Node
-{
-  public:
-    void StatementNode();
-}
+///////////////////
 
 class Expression : public Node
 {
   public:
-    void ExpressionNode();
-}
+    virtual void ExpressionNode(){};
+};
 
-class ProgramRoot : public Node
+class Identifier : public Expression
 {
-    std::vector<Statement> statements_;
+  public:
+    void ExpressionNode() override{};
+    std::string TokenLiteral() override { return token_.literal; };
 
+  private:
+    Token token_;
+    std::string value_;
+};
+
+////////////////////////
+
+class Statement : public Node
+{
+  public:
+    virtual void StatementNode(){};
+};
+
+class LetStatement : public Statement
+{
+  public:
+    void StatementNode() override{};
+    std::string TokenLiteral() override { return token_.literal; };
+
+  private:
+    Token token_;
+    Identifier name_;
+    Expression value_;
+};
+
+// ROOT //////////////////////
+
+class Program : public Node
+{
   public:
     std::string TokenLiteral() override;
-}
+
+  private:
+    std::vector<Statement> statements_;
+};
 
 } // namespace ast
