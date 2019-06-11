@@ -7,6 +7,7 @@
 #include "parser.hpp"
 #include "token.hpp"
 
+using namespace ast;
 using namespace lexer;
 using namespace token;
 using namespace parser;
@@ -16,73 +17,68 @@ namespace
 
 struct ParserTest : public ::testing::Test
 {
-    std::unique_ptr<Lexer> lex_;
     std::unique_ptr<Parser> parsley_;
+    std::unique_ptr<Program> program_;
 
-    std::string input = R"(let five = 5;
-let ten = 10;
-
-let add = fn(x, y) {
-    x + y;
-};
-
-let result = add(five, ten);
-!-/*5;
-5 < 10 > 5;
-
-if (5 < 10) {
-    return true;
-} else {
-    return false;
-}
-
-10 == 10;
-10 != 9;
+    std::string input = R"(
+let x = 5;
+let y = 10;
+let foobar = 838383;
 )";
 
-    std::vector<std::pair<TokenType, std::string>> testTokens = {
-        {LET, "let"},      {IDENT, "five"},    {ASSIGN, "="},
-        {INT, "5"},        {SEMICOLON, ";"},   {LET, "let"},
-        {IDENT, "ten"},    {ASSIGN, "="},      {INT, "10"},
-        {SEMICOLON, ";"},  {LET, "let"},       {IDENT, "add"},
-        {ASSIGN, "="},     {FUNCTION, "fn"},   {LPAREN, "("},
-        {IDENT, "x"},      {COMMA, ","},       {IDENT, "y"},
-        {RPAREN, ")"},     {LBRACE, "{"},      {IDENT, "x"},
-        {PLUS, "+"},       {IDENT, "y"},       {SEMICOLON, ";"},
-        {RBRACE, "}"},     {SEMICOLON, ";"},   {LET, "let"},
-        {IDENT, "result"}, {ASSIGN, "="},      {IDENT, "add"},
-        {LPAREN, "("},     {IDENT, "five"},    {COMMA, ","},
-        {IDENT, "ten"},    {RPAREN, ")"},      {SEMICOLON, ";"},
-        {BANG, "!"},       {MINUS, "-"},       {SLASH, "/"},
-        {ASTERISK, "*"},   {INT, "5"},         {SEMICOLON, ";"},
-        {INT, "5"},        {LT, "<"},          {INT, "10"},
-        {GT, ">"},         {INT, "5"},         {SEMICOLON, ";"},
-        {IF, "if"},        {LPAREN, "("},      {INT, "5"},
-        {LT, "<"},         {INT, "10"},        {RPAREN, ")"},
-        {LBRACE, "{"},     {RETURN, "return"}, {TRUE, "true"},
-        {SEMICOLON, ";"},  {RBRACE, "}"},      {ELSE, "else"},
-        {LBRACE, "{"},     {RETURN, "return"}, {FALSE, "false"},
-        {SEMICOLON, ";"},  {RBRACE, "}"},      {INT, "10"},
-        {EQ, "=="},        {INT, "10"},        {SEMICOLON, ";"},
-        {INT, "10"},       {NE, "!="},         {INT, "9"},
-        {SEMICOLON, ";"}};
+    std::vector<std::string> tests = {
+        {"x"},
+        {"y"},
+        {"foobar"},
+    };
 
     ParserTest()
     {
-        std::cout << "Parsey setup!\n";
-        lex_ = std::make_unique<Lexer>(input);
-        parsley_ = std::make_unique<Parser>(std::move(lex_));
+        std::cout << "Parsey Test setup!\n";
+        std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(input);
+        parsley_ = std::make_unique<Parser>(std::move(lex));
+        program_ = parsley_->ParseProgram();
     }
 };
 
-TEST_F(ParserTest, TestNextToken)
+bool TestLetStatement(std::shared_ptr<Statement> s, std::string name)
 {
-    // for (auto tt : testTokens)
-    //{
-    //    Token tok = lex->NextToken();
-    //    EXPECT_EQ(tok.type, tt.first);
-    //    EXPECT_EQ(tok.literal, tt.second);
-    //}
+    std::cout << "Literal is " << s->TokenLiteral() << std::endl;
+
+    if (s->TokenLiteral().compare("let") != 0)
+        return false;
+
+    std::cout << "All good!\n";
+
+    std::cout << "s is of type " << typeid(s).name() << std::endl;
+
+    std::shared_ptr<LetStatement> ls =
+        std::dynamic_pointer_cast<LetStatement>(s);
+    if (!ls)
+        return false;
+    std::cout << "CAST WAS All good!\n";
+
+    if (ls->name_.value_.compare(name) != 0)
+        return false;
+    std::cout << "NAME WAS All good!\n";
+
+    if (ls->name_.TokenLiteral().compare(name) != 0)
+        return false;
+    std::cout << "NAME LITERAL WAS All good!\n";
+
+    return true;
+}
+
+TEST_F(ParserTest, TestLetStatements)
+{
+    const int tests_len = tests.size();
+    ASSERT_EQ(tests_len, program_->statements_.size());
+    for (int i = 0; i < tests_len; i++)
+    {
+        std::shared_ptr<Statement> stmt = program_->statements_[i];
+        std::string tt = tests[i];
+        EXPECT_TRUE(TestLetStatement(stmt, tt));
+    }
 }
 
 } // namespace

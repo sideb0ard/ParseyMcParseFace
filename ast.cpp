@@ -3,10 +3,12 @@
 namespace ast
 {
 
-std::string ProgramRoot::TokenLiteral()
+LetStatement::LetStatement(Token toke) : Statement(toke){};
+
+std::string Program::TokenLiteral() const
 {
     if (!statements_.empty())
-        return statements_[0].TokenLiteral();
+        return statements_[0]->TokenLiteral();
     else
         return "";
 }

@@ -15,9 +15,13 @@ GTEST_LIBS = libgtest.a libgtest_main.a
 DEPS = parsey.hpp lexer.hpp token.hpp
 MAIN = parsey.cpp
 TARGET = slang
-OBJ = lexer.cpp token.cpp
-TESTS = lexer_test.cpp
+OBJ = lexer.cpp token.cpp ast.cpp parser.cpp
+LEXER_TESTS = lexer_test.cpp
+PARSER_TESTS = parser_test.cpp
 INC=-I${HOME}/Code/range-v3/include/
+
+CTAGS:
+	@ctags -R *
 
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
@@ -32,11 +36,17 @@ all: $(TARGET)
 	$(CC) -c -o $@ $< $(CPPFLAGS) $(INC)
 
 $(TARGET): $(MAIN) $(OBJ)
+	$(CTAGS)
 	$(CC) $(CPPFLAGS) $(INC) $(CXXFLAGS) $^ -o $@
 
-lexer_test: $(GTEST_LIBS) $(TESTS) $(OBJ)
+lexer_test: $(GTEST_LIBS) $(LEXER_TESTS) $(OBJ)
+	$(CTAGS)
 	$(CC) $(CPPFLAGS) $(INC) $(CXXFLAGS) -L$(GTEST_LIB_DIR) -lgtest -lpthread $^ -o $@
 
+
+parser_test: $(GTEST_LIBS) $(PARSER_TESTS) $(OBJ)
+	$(CTAGS)
+	$(CC) $(CPPFLAGS) $(INC) $(CXXFLAGS) -L$(GTEST_LIB_DIR) -lgtest -lpthread $^ -o $@
 
 # Builds gtest.a and gtest_main.a.
 

@@ -8,3 +8,5 @@ lexer_test.dSYM/
 parsey
 *.dSYM/
 slang
+parser_test
+tags
