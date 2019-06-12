@@ -25,7 +25,7 @@ class Expression : public Node
   public:
     Expression() {}
     Expression(Token token) : token_{token} {}
-    std::string TokenLiteral() const override { return token_.literal; }
+    std::string TokenLiteral() const override { return token_.literal_; }
     virtual void ExpressionNode() {}
 
   private:
@@ -47,11 +47,7 @@ class Statement : public Node
   public:
     Statement(Token toke) : token_{toke} {};
     virtual void StatementNode(){};
-    std::string TokenLiteral() const override
-    {
-        std::cout << "\nBASE stmt\n";
-        return token_.literal;
-    }
+    std::string TokenLiteral() const override { return token_.literal_; }
 
   protected:
     Token token_;
@@ -61,11 +57,7 @@ class LetStatement : public Statement
 {
   public:
     LetStatement(Token toke);
-    std::string TokenLiteral() const override
-    {
-        std::cout << "\nBEEP\n";
-        return token_.literal;
-    }
+    std::string TokenLiteral() const override { return token_.literal_; }
     Identifier name_;
     Expression value_;
 };
@@ -75,6 +67,7 @@ class LetStatement : public Statement
 class Program : public Node
 {
   public:
+    Program() { std::cout << " Constructing Program\n"; }
     std::string TokenLiteral() const override;
 
   public:

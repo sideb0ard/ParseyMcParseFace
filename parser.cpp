@@ -8,9 +8,11 @@ namespace parser
 
 std::unique_ptr<Program> Parser::ParseProgram()
 {
+    std::cout << "ParseProgram begins..\n";
+
     std::unique_ptr<Program> program = std::make_unique<Program>();
 
-    while (cur_token_.type != EOFF)
+    while (cur_token_.type_ != EOFF)
     {
         std::shared_ptr<Statement> stmt = ParseStatement();
         if (stmt)
@@ -26,7 +28,7 @@ std::unique_ptr<Program> Parser::ParseProgram()
 
 std::shared_ptr<Statement> Parser::ParseStatement()
 {
-    if (cur_token_.type.compare(LET) == 0)
+    if (cur_token_.type_.compare(LET) == 0)
     {
         std::cout << "Got a LET statement\n";
         return ParseLetStatement();
@@ -40,13 +42,16 @@ std::shared_ptr<LetStatement> Parser::ParseLetStatement()
 
     std::cout << "Parsing LET Statement\n";
 
+    std::shared_ptr<LetStatement> stmt =
+        std::make_shared<LetStatement>(cur_token_);
+
     if (!ExpectPeek(IDENT))
     {
         std::cout << "NO IDENT! - returning nullopt \n";
         return nullptr;
     }
 
-    auto name = Identifier(cur_token_, cur_token_.literal);
+    stmt->name_ = Identifier(cur_token_, cur_token_.literal_);
 
     if (!ExpectPeek(ASSIGN))
     {
@@ -56,11 +61,6 @@ std::shared_ptr<LetStatement> Parser::ParseLetStatement()
 
     while (!CurTokenIs(SEMICOLON))
         NextToken();
-
-    std::shared_ptr<LetStatement> stmt =
-        std::make_shared<LetStatement>(cur_token_);
-
-    stmt->name_ = name;
 
     std::cout << "Returning a " << typeid(stmt).name() << std::endl;
     std::cout << stmt->TokenLiteral() << std::endl;

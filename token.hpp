@@ -46,13 +46,13 @@ class Token
   public:
     Token(){};
     Token(std::string type, char ch)
-        : type{type}, literal{std::string(1, ch)} {};
+        : type_{type}, literal_{std::string(1, ch)} {};
 
     friend std::ostream &operator<<(std::ostream &, const Token &);
 
   public:
-    TokenType type;
-    std::string literal;
+    TokenType type_;
+    std::string literal_;
 };
 
 TokenType LookupIdent(std::string ident);

@@ -1,6 +1,9 @@
 #pragma once
 
 #include <optional>
+#include <sstream>
+#include <string>
+#include <vector>
 
 #include "ast.hpp"
 #include "lexer.hpp"
@@ -24,12 +27,16 @@ class Parser
 
     std::unique_ptr<Program> ParseProgram();
 
+    std::vector<std::string> Errors() { return errors_; }
+
   private:
     std::shared_ptr<Statement> ParseStatement();
     std::shared_ptr<LetStatement> ParseLetStatement();
 
     bool ExpectPeek(TokenType t)
     {
+        std::cout << "  ExpectPeek - looking at " << peek_token_.type_
+                  << " and expect it to be " << t << std::endl;
         if (PeekTokenIs(t))
         {
             NextToken();
@@ -49,22 +56,32 @@ class Parser
 
     bool CurTokenIs(TokenType t)
     {
-        if (cur_token_.type.compare(t) == 0)
+        if (cur_token_.type_.compare(t) == 0)
             return true;
         return false;
     }
 
     bool PeekTokenIs(TokenType t)
     {
-        if (peek_token_.type.compare(t) == 0)
+        if (peek_token_.type_.compare(t) == 0)
             return true;
         return false;
+    }
+
+    void PeekError(TokenType t)
+    {
+        std::stringstream msg;
+        msg << "Expected next token to be " << t << ", got "
+            << peek_token_.type_ << " instead";
+        errors_.push_back(msg.str());
     }
 
   private:
     std::unique_ptr<Lexer> lexer_;
     Token cur_token_;
     Token peek_token_;
+
+    std::vector<std::string> errors_;
 };
 
 } // namespace parser

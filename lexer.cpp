@@ -48,96 +48,96 @@ Token Lexer::NextToken()
         if (PeekChar() == '=')
         {
             ReadChar();
-            tok.type = EQ;
-            tok.literal = "==";
+            tok.type_ = EQ;
+            tok.literal_ = "==";
         }
         else
         {
-            tok.type = ASSIGN;
-            tok.literal = current_char_;
+            tok.type_ = ASSIGN;
+            tok.literal_ = current_char_;
         }
         break;
     case ('+'):
-        tok.type = PLUS;
-        tok.literal = current_char_;
+        tok.type_ = PLUS;
+        tok.literal_ = current_char_;
         break;
     case ('-'):
-        tok.type = MINUS;
-        tok.literal = current_char_;
+        tok.type_ = MINUS;
+        tok.literal_ = current_char_;
         break;
     case ('!'):
         if (PeekChar() == '=')
         {
             ReadChar();
-            tok.type = NE;
-            tok.literal = "!=";
+            tok.type_ = NE;
+            tok.literal_ = "!=";
         }
         else
         {
-            tok.type = BANG;
-            tok.literal = current_char_;
+            tok.type_ = BANG;
+            tok.literal_ = current_char_;
         }
         break;
     case ('*'):
-        tok.type = ASTERISK;
-        tok.literal = current_char_;
+        tok.type_ = ASTERISK;
+        tok.literal_ = current_char_;
         break;
     case ('/'):
-        tok.type = SLASH;
-        tok.literal = current_char_;
+        tok.type_ = SLASH;
+        tok.literal_ = current_char_;
         break;
     case ('<'):
-        tok.type = LT;
-        tok.literal = current_char_;
+        tok.type_ = LT;
+        tok.literal_ = current_char_;
         break;
     case ('>'):
-        tok.type = GT;
-        tok.literal = current_char_;
+        tok.type_ = GT;
+        tok.literal_ = current_char_;
         break;
     case (','):
-        tok.type = COMMA;
-        tok.literal = current_char_;
+        tok.type_ = COMMA;
+        tok.literal_ = current_char_;
         break;
     case (';'):
-        tok.type = SEMICOLON;
-        tok.literal = current_char_;
+        tok.type_ = SEMICOLON;
+        tok.literal_ = current_char_;
         break;
     case ('('):
-        tok.type = LPAREN;
-        tok.literal = current_char_;
+        tok.type_ = LPAREN;
+        tok.literal_ = current_char_;
         break;
     case (')'):
-        tok.type = RPAREN;
-        tok.literal = current_char_;
+        tok.type_ = RPAREN;
+        tok.literal_ = current_char_;
         break;
     case ('{'):
-        tok.type = LBRACE;
-        tok.literal = current_char_;
+        tok.type_ = LBRACE;
+        tok.literal_ = current_char_;
         break;
     case ('}'):
-        tok.type = RBRACE;
-        tok.literal = current_char_;
+        tok.type_ = RBRACE;
+        tok.literal_ = current_char_;
         break;
     case (0):
-        tok.type = EOFF;
+        tok.type_ = EOFF;
         break;
     default:
         if (IsValidIdentifier(current_char_))
         {
-            tok.literal = ReadIdentifier();
-            tok.type = LookupIdent(tok.literal);
+            tok.literal_ = ReadIdentifier();
+            tok.type_ = LookupIdent(tok.literal_);
             return tok;
         }
         else if (IsDigit(current_char_))
         {
-            tok.type = INT;
-            tok.literal = ReadNumber();
+            tok.type_ = INT;
+            tok.literal_ = ReadNumber();
             return tok;
         }
         else
         {
-            tok.type = ILLEGAL;
-            tok.literal = current_char_;
+            tok.type_ = ILLEGAL;
+            tok.literal_ = current_char_;
         }
     }
 

@@ -21,7 +21,7 @@ TokenType LookupIdent(std::string ident)
 
 std::ostream &operator<<(std::ostream &out, const Token &tok)
 {
-    out << "{type:" << tok.type << " literal:" << tok.literal << "}";
+    out << "{type:" << tok.type_ << " literal:" << tok.literal_ << "}";
     return out;
 }
 
