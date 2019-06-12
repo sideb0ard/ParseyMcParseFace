@@ -33,6 +33,11 @@ std::shared_ptr<Statement> Parser::ParseStatement()
         std::cout << "Got a LET statement\n";
         return ParseLetStatement();
     }
+    else if (cur_token_.type_.compare(RETURN) == 0)
+    {
+        std::cout << "Got a RETURN statement\n";
+        return ParseReturnStatement();
+    }
     else
         return nullptr;
 }
@@ -65,6 +70,34 @@ std::shared_ptr<LetStatement> Parser::ParseLetStatement()
     std::cout << "Returning a " << typeid(stmt).name() << std::endl;
     std::cout << stmt->TokenLiteral() << std::endl;
     return stmt;
+}
+
+std::shared_ptr<ReturnStatement> Parser::ParseReturnStatement()
+{
+
+    std::cout << "Parsing RETURN Statement\n";
+
+    std::shared_ptr<ReturnStatement> stmt =
+        std::make_shared<ReturnStatement>(cur_token_);
+
+    NextToken();
+
+    while (!CurTokenIs(SEMICOLON))
+        NextToken();
+
+    std::cout << "Returning a " << typeid(stmt).name() << std::endl;
+    std::cout << stmt->TokenLiteral() << std::endl;
+    return stmt;
+}
+
+bool Parser::CheckErrors()
+{
+    if (errors_.empty())
+        return false;
+    std::cout << "Parser had " << errors_.size() << " errors\n";
+    for (auto e : errors_)
+        std::cout << e << std::endl;
+    return true;
 }
 
 } // namespace parser

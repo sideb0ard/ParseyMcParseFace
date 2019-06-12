@@ -24,7 +24,7 @@ int main()
 
         Lexer lex{input};
 
-        for (Token tok = lex.NextToken(); tok.type != EOFF;
+        for (Token tok = lex.NextToken(); tok.type_ != EOFF;
              tok = lex.NextToken())
             std::cout << tok << std::endl;
 

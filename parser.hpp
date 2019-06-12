@@ -27,11 +27,12 @@ class Parser
 
     std::unique_ptr<Program> ParseProgram();
 
-    std::vector<std::string> Errors() { return errors_; }
+    bool CheckErrors();
 
   private:
     std::shared_ptr<Statement> ParseStatement();
     std::shared_ptr<LetStatement> ParseLetStatement();
+    std::shared_ptr<ReturnStatement> ParseReturnStatement();
 
     bool ExpectPeek(TokenType t)
     {
@@ -44,6 +45,7 @@ class Parser
         }
         else
         {
+            PeekError(t);
             return false;
         }
     }

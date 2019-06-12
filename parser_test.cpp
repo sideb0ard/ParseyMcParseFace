@@ -17,28 +17,6 @@ namespace
 
 struct ParserTest : public ::testing::Test
 {
-    std::unique_ptr<Parser> parsley_;
-    std::unique_ptr<Program> program_;
-
-    std::string input = R"(
-let x = 5;
-let y = 10;
-let foobar = 838383;
-)";
-
-    std::vector<std::string> tests = {
-        {"x"},
-        {"y"},
-        {"foobar"},
-    };
-
-    ParserTest()
-    {
-        std::cout << "Parsey Test setup!\n";
-        std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(input);
-        parsley_ = std::make_unique<Parser>(std::move(lex));
-        program_ = parsley_->ParseProgram();
-    }
 };
 
 bool TestLetStatement(std::shared_ptr<Statement> s, std::string name)
@@ -71,6 +49,24 @@ bool TestLetStatement(std::shared_ptr<Statement> s, std::string name)
 
 TEST_F(ParserTest, TestLetStatements)
 {
+    std::string input = R"(
+let x = 5;
+let y = 10;
+let foobar = 838383;
+)";
+
+    std::vector<std::string> tests = {
+        {"x"},
+        {"y"},
+        {"foobar"},
+    };
+
+    std::cout << "Parsey Test setup!\n";
+    std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(input);
+    std::unique_ptr<Parser> parsley_ = std::make_unique<Parser>(std::move(lex));
+    std::unique_ptr<Program> program_ = parsley_->ParseProgram();
+    EXPECT_FALSE(parsley_->CheckErrors());
+
     const int tests_len = tests.size();
     ASSERT_EQ(tests_len, program_->statements_.size());
     for (int i = 0; i < tests_len; i++)
@@ -78,6 +74,39 @@ TEST_F(ParserTest, TestLetStatements)
         std::shared_ptr<Statement> stmt = program_->statements_[i];
         std::string tt = tests[i];
         EXPECT_TRUE(TestLetStatement(stmt, tt));
+    }
+}
+
+bool TestReturnStatement(std::shared_ptr<Statement> s)
+{
+    std::cout << "Literal is " << s->TokenLiteral() << std::endl;
+
+    if (s->TokenLiteral().compare("return") != 0)
+        return false;
+
+    return true;
+}
+
+TEST_F(ParserTest, TestReturnStatements)
+{
+    std::string input = R"(
+return 5;
+return 10;
+return 993322;
+)";
+
+    std::cout << "Return Statements Test setup!\n";
+    std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(input);
+    std::unique_ptr<Parser> parsley_ = std::make_unique<Parser>(std::move(lex));
+    std::unique_ptr<Program> program_ = parsley_->ParseProgram();
+    EXPECT_FALSE(parsley_->CheckErrors());
+
+    ASSERT_EQ(3, program_->statements_.size());
+    int len = program_->statements_.size();
+    for (int i = 0; i < len; i++)
+    {
+        std::shared_ptr<Statement> stmt = program_->statements_[i];
+        EXPECT_TRUE(TestReturnStatement(stmt));
     }
 }
 

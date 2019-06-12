@@ -3,8 +3,6 @@
 namespace ast
 {
 
-LetStatement::LetStatement(Token toke) : Statement(toke){};
-
 std::string Program::TokenLiteral() const
 {
     if (!statements_.empty())
