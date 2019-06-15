@@ -19,7 +19,8 @@ std::unique_ptr<Program> Parser::ParseProgram()
         {
             std::cout << " Gots a " << typeid(stmt).name() << " "
                       << stmt->TokenLiteral() << std::endl;
-            program->statements_.push_back(std::move(stmt));
+            // program->statements_.push_back(std::move(stmt));
+            program->statements_.push_back(stmt);
         }
         NextToken();
     }

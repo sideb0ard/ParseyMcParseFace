@@ -110,6 +110,23 @@ return 993322;
     }
 }
 
+TEST_F(ParserTest, TestString)
+{
+    std::string input = R"(let myVar = anotherVar;)";
+
+    Token toke{LET, "let"};
+    std::shared_ptr<LetStatement> stmt = std::make_shared<LetStatement>(toke);
+    Token name{IDENT, "myVar"};
+    stmt->name_ = Identifier(name, "myVar");
+    Token val{IDENT, "anotherVar"};
+    stmt->value_ = Identifier(val, "anotherVar");
+
+    std::unique_ptr<Program> program = std::make_unique<Program>();
+    program->statements_.push_back(stmt);
+
+    ASSERT_EQ(input, program->String());
+}
+
 } // namespace
 
 int main(int argc, char **argv)

@@ -45,8 +45,8 @@ class Token
 {
   public:
     Token(){};
-    Token(std::string type, char ch)
-        : type_{type}, literal_{std::string(1, ch)} {};
+    Token(std::string type, std::string literal)
+        : type_{type}, literal_{literal} {};
 
     friend std::ostream &operator<<(std::ostream &, const Token &);
 

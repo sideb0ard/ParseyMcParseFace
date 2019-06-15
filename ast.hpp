@@ -14,8 +14,14 @@ namespace ast
 class Node
 {
   public:
+    Node() = default;
+    Node(Token toke) : token_{toke} {}
     virtual ~Node() = default;
-    virtual std::string TokenLiteral() const = 0;
+    virtual std::string TokenLiteral() const { return token_.literal_; }
+    virtual std::string String() const = 0;
+
+  public:
+    Token token_;
 };
 
 ///////////////////
@@ -24,19 +30,16 @@ class Expression : public Node
 {
   public:
     Expression() {}
-    Expression(Token token) : token_{token} {}
-    std::string TokenLiteral() const override { return token_.literal_; }
-
-  private:
-    Token token_;
+    Expression(Token token, std::string val) : Node{token}, value_{val} {}
+    virtual std::string String() const override { return value_; }
+    std::string value_;
 };
 
 class Identifier : public Expression
 {
   public:
     Identifier() {}
-    Identifier(Token token, std::string val) : Expression{token}, value_{val} {}
-    std::string value_;
+    Identifier(Token token, std::string val) : Expression{token, val} {}
 };
 
 ////////////////////////
@@ -44,18 +47,14 @@ class Identifier : public Expression
 class Statement : public Node
 {
   public:
-    Statement(Token toke) : token_{toke} {};
-    std::string TokenLiteral() const override { return token_.literal_; }
-
-  protected:
-    Token token_;
+    Statement(Token toke) : Node{toke} {};
 };
 
 class LetStatement : public Statement
 {
   public:
     LetStatement(Token toke) : Statement(toke){};
-    std::string TokenLiteral() const override { return token_.literal_; }
+    std::string String() const override;
 
   public:
     Identifier name_;
@@ -66,10 +65,20 @@ class ReturnStatement : public Statement
 {
   public:
     ReturnStatement(Token toke) : Statement(toke){};
-    std::string TokenLiteral() const override { return token_.literal_; }
+    std::string String() const override;
 
   public:
-    Expression ReturnValue;
+    Expression return_value_;
+};
+
+class ExpressionStatement : public Statement
+{
+  public:
+    ExpressionStatement(Token toke) : Statement(toke){};
+    std::string String() const override;
+
+  public:
+    Expression expression_;
 };
 
 // ROOT //////////////////////
@@ -79,6 +88,7 @@ class Program : public Node
   public:
     Program() { std::cout << " Constructing Program\n"; }
     std::string TokenLiteral() const override;
+    std::string String() const override;
 
   public:
     std::vector<std::shared_ptr<Statement>> statements_;
