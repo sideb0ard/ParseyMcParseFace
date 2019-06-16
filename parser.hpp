@@ -16,67 +16,41 @@ using namespace token;
 namespace parser
 {
 
+enum class Precedence
+{
+    _,
+    LOWEST,
+    EQUALS,
+    LESSGREATER,
+    SUM,
+    PRODUCT,
+    PREFIX,
+    CALL
+};
+
 class Parser
 {
   public:
-    Parser(std::unique_ptr<Lexer> lexer) : lexer_{std::move(lexer)}
-    {
-        NextToken();
-        NextToken();
-    }
+    Parser(std::unique_ptr<Lexer> lexer);
 
     std::unique_ptr<Program> ParseProgram();
-
     bool CheckErrors();
 
   private:
     std::shared_ptr<Statement> ParseStatement();
     std::shared_ptr<LetStatement> ParseLetStatement();
     std::shared_ptr<ReturnStatement> ParseReturnStatement();
+    std::shared_ptr<ExpressionStatement> ParseExpressionStatement();
+    std::shared_ptr<Expression> ParseExpression(Precedence p);
+    std::shared_ptr<Expression> ParseIdentifier();
+    std::shared_ptr<Expression> ParseIntegerLiteral();
 
-    bool ExpectPeek(TokenType t)
-    {
-        std::cout << "  ExpectPeek - looking at " << peek_token_.type_
-                  << " and expect it to be " << t << std::endl;
-        if (PeekTokenIs(t))
-        {
-            NextToken();
-            return true;
-        }
-        else
-        {
-            PeekError(t);
-            return false;
-        }
-    }
+    bool ExpectPeek(TokenType t);
+    bool CurTokenIs(TokenType t);
+    bool PeekTokenIs(TokenType t);
 
-    void NextToken()
-    {
-        cur_token_ = peek_token_;
-        peek_token_ = lexer_->NextToken();
-    }
-
-    bool CurTokenIs(TokenType t)
-    {
-        if (cur_token_.type_.compare(t) == 0)
-            return true;
-        return false;
-    }
-
-    bool PeekTokenIs(TokenType t)
-    {
-        if (peek_token_.type_.compare(t) == 0)
-            return true;
-        return false;
-    }
-
-    void PeekError(TokenType t)
-    {
-        std::stringstream msg;
-        msg << "Expected next token to be " << t << ", got "
-            << peek_token_.type_ << " instead";
-        errors_.push_back(msg.str());
-    }
+    void PeekError(TokenType t);
+    void NextToken();
 
   private:
     std::unique_ptr<Lexer> lexer_;

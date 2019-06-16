@@ -36,11 +36,11 @@ bool TestLetStatement(std::shared_ptr<Statement> s, std::string name)
         return false;
     std::cout << "CAST WAS All good!\n";
 
-    if (ls->name_.value_.compare(name) != 0)
+    if (ls->name_->value_.compare(name) != 0)
         return false;
     std::cout << "NAME WAS All good!\n";
 
-    if (ls->name_.TokenLiteral().compare(name) != 0)
+    if (ls->name_->TokenLiteral().compare(name) != 0)
         return false;
     std::cout << "NAME LITERAL WAS All good!\n";
 
@@ -117,14 +117,62 @@ TEST_F(ParserTest, TestString)
     Token toke{LET, "let"};
     std::shared_ptr<LetStatement> stmt = std::make_shared<LetStatement>(toke);
     Token name{IDENT, "myVar"};
-    stmt->name_ = Identifier(name, "myVar");
+    stmt->name_ = std::make_shared<Identifier>(name, "myVar");
     Token val{IDENT, "anotherVar"};
-    stmt->value_ = Identifier(val, "anotherVar");
+    stmt->value_ = std::make_shared<Identifier>(val, "anotherVar");
 
     std::unique_ptr<Program> program = std::make_unique<Program>();
     program->statements_.push_back(stmt);
 
     ASSERT_EQ(input, program->String());
+}
+
+TEST_F(ParserTest, TestIdentifierExpression)
+{
+    std::string input = "foobar";
+    std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(input);
+    std::unique_ptr<Parser> parsley_ = std::make_unique<Parser>(std::move(lex));
+    std::unique_ptr<Program> program_ = parsley_->ParseProgram();
+    EXPECT_FALSE(parsley_->CheckErrors());
+    ASSERT_EQ(1, program_->statements_.size());
+
+    std::shared_ptr<ExpressionStatement> stmt =
+        std::dynamic_pointer_cast<ExpressionStatement>(
+            program_->statements_[0]);
+    if (!stmt)
+        FAIL() << "program_->statements_[0] is not an ExpressionStatement";
+
+    std::shared_ptr<Identifier> ident =
+        std::dynamic_pointer_cast<Identifier>(stmt->expression_);
+    if (!ident)
+        FAIL() << "Not an Identifier - got "
+               << typeid(&stmt->expression_).name();
+    ASSERT_EQ(ident->value_, "foobar");
+    ASSERT_EQ(ident->TokenLiteral(), "foobar");
+}
+
+TEST_F(ParserTest, TestIntegerLiteralExpression)
+{
+    std::string input = "5";
+    std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(input);
+    std::unique_ptr<Parser> parsley_ = std::make_unique<Parser>(std::move(lex));
+    std::unique_ptr<Program> program_ = parsley_->ParseProgram();
+    EXPECT_FALSE(parsley_->CheckErrors());
+    ASSERT_EQ(1, program_->statements_.size());
+
+    std::shared_ptr<ExpressionStatement> stmt =
+        std::dynamic_pointer_cast<ExpressionStatement>(
+            program_->statements_[0]);
+    if (!stmt)
+        FAIL() << "program_->statements_[0] is not an ExpressionStatement";
+
+    std::shared_ptr<IntegerLiteral> literal =
+        std::dynamic_pointer_cast<IntegerLiteral>(stmt->expression_);
+    if (!literal)
+        FAIL() << "Not an IntegerLiteral - got "
+               << typeid(&stmt->expression_).name();
+    ASSERT_EQ(literal->value_, 5);
+    ASSERT_EQ(literal->TokenLiteral(), "5");
 }
 
 } // namespace

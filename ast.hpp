@@ -30,16 +30,26 @@ class Expression : public Node
 {
   public:
     Expression() {}
-    Expression(Token token, std::string val) : Node{token}, value_{val} {}
-    virtual std::string String() const override { return value_; }
-    std::string value_;
+    Expression(Token token) : Node{token} {}
 };
 
 class Identifier : public Expression
 {
   public:
     Identifier() {}
-    Identifier(Token token, std::string val) : Expression{token, val} {}
+    Identifier(Token token, std::string val) : Expression{token}, value_{val} {}
+    std::string String() const override;
+    std::string value_;
+};
+
+class IntegerLiteral : public Expression
+{
+  public:
+    IntegerLiteral() {}
+    IntegerLiteral(Token token) : Expression{token} {}
+    IntegerLiteral(Token token, int64_t val) : Expression{token}, value_{val} {}
+    std::string String() const override;
+    int64_t value_;
 };
 
 ////////////////////////
@@ -57,8 +67,8 @@ class LetStatement : public Statement
     std::string String() const override;
 
   public:
-    Identifier name_;
-    Expression value_;
+    std::shared_ptr<Identifier> name_{nullptr};
+    std::shared_ptr<Expression> value_{nullptr};
 };
 
 class ReturnStatement : public Statement
@@ -68,7 +78,7 @@ class ReturnStatement : public Statement
     std::string String() const override;
 
   public:
-    Expression return_value_;
+    std::shared_ptr<Expression> return_value_;
 };
 
 class ExpressionStatement : public Statement
@@ -78,7 +88,7 @@ class ExpressionStatement : public Statement
     std::string String() const override;
 
   public:
-    Expression expression_;
+    std::shared_ptr<Expression> expression_;
 };
 
 // ROOT //////////////////////

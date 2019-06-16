@@ -26,8 +26,11 @@ std::string Program::String() const
 std::string LetStatement::String() const
 {
     std::stringstream ss;
-    ss << TokenLiteral() << " " << name_.String() << " = " << value_.String()
-       << ";";
+    if (name_)
+        ss << TokenLiteral() << " " << name_->String() << " = ";
+    if (value_)
+        ss << value_->String();
+    ss << ";";
 
     return ss.str();
 }
@@ -35,7 +38,10 @@ std::string LetStatement::String() const
 std::string ReturnStatement::String() const
 {
     std::stringstream ss;
-    ss << TokenLiteral() << " " << return_value_.String() << ";";
+    ss << TokenLiteral();
+    if (return_value_)
+        ss << " " << return_value_->String();
+    ss << ";";
 
     return ss.str();
 }
@@ -43,9 +49,13 @@ std::string ReturnStatement::String() const
 std::string ExpressionStatement::String() const
 {
     std::stringstream ss;
-    ss << expression_.String();
+    if (expression_)
+        ss << expression_->String();
 
     return ss.str();
 }
+
+std::string Identifier::String() const { return value_; }
+std::string IntegerLiteral::String() const { return token_.literal_; }
 
 } // namespace ast
