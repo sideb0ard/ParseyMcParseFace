@@ -55,6 +55,19 @@ std::string ExpressionStatement::String() const
     return ss.str();
 }
 
+std::string PrefixExpression::String() const
+{
+    std::stringstream ss;
+    ss << "(";
+    if (!operator_.empty())
+        ss << operator_;
+    if (right_)
+        ss << right_->String();
+    ss << ")";
+
+    return ss.str();
+}
+
 std::string Identifier::String() const { return value_; }
 std::string IntegerLiteral::String() const { return token_.literal_; }
 

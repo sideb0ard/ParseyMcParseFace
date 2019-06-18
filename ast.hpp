@@ -49,7 +49,25 @@ class IntegerLiteral : public Expression
     IntegerLiteral(Token token) : Expression{token} {}
     IntegerLiteral(Token token, int64_t val) : Expression{token}, value_{val} {}
     std::string String() const override;
+
+  public:
     int64_t value_;
+};
+
+class PrefixExpression : public Expression
+{
+  public:
+    PrefixExpression() {}
+    PrefixExpression(Token token) : Expression{token} {}
+    PrefixExpression(Token token, std::string op)
+        : Expression{token}, operator_{op}
+    {
+    }
+    std::string String() const override;
+
+  public:
+    std::string operator_;
+    std::shared_ptr<Expression> right_;
 };
 
 ////////////////////////

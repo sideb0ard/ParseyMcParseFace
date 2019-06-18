@@ -170,6 +170,14 @@ std::shared_ptr<Expression> Parser::ParseExpression(Precedence p)
         return ParseIdentifier();
     else if (cur_token_.type_ == INT)
         return ParseIntegerLiteral();
+    else if (cur_token_.type_ == BANG)
+        return ParsePrefixExpression();
+    else if (cur_token_.type_ == MINUS)
+        return ParsePrefixExpression();
+
+    std::stringstream err;
+    err << "no prefix parse function for " << cur_token_.type_ << " found.";
+    errors_.push_back(err.str());
     return nullptr;
 }
 
@@ -184,6 +192,18 @@ std::shared_ptr<Expression> Parser::ParseIntegerLiteral()
     int64_t val = std::stoll(cur_token_.literal_, nullptr, 10);
     literal->value_ = val;
     return literal;
+}
+
+std::shared_ptr<Expression> Parser::ParsePrefixExpression()
+{
+    auto expression =
+        std::make_shared<PrefixExpression>(cur_token_, cur_token_.literal_);
+
+    NextToken();
+
+    expression->right_ = ParseExpression(Precedence::PREFIX);
+
+    return expression;
 }
 
 } // namespace parser

@@ -44,6 +44,7 @@ class Parser
     std::shared_ptr<Expression> ParseExpression(Precedence p);
     std::shared_ptr<Expression> ParseIdentifier();
     std::shared_ptr<Expression> ParseIntegerLiteral();
+    std::shared_ptr<Expression> ParsePrefixExpression();
 
     bool ExpectPeek(TokenType t);
     bool CurTokenIs(TokenType t);
