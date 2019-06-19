@@ -39,7 +39,7 @@ const TokenType ELSE = "ELSE";
 const TokenType RETURN = "RETURN";
 
 const TokenType EQ = "==";
-const TokenType NE = "!=";
+const TokenType NOT_EQ = "!=";
 
 class Token
 {

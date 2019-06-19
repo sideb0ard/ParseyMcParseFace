@@ -70,6 +70,24 @@ class PrefixExpression : public Expression
     std::shared_ptr<Expression> right_;
 };
 
+class InfixExpression : public Expression
+{
+  public:
+    InfixExpression() {}
+    InfixExpression(Token token) : Expression{token} {}
+    InfixExpression(Token token, std::string op,
+                    std::shared_ptr<Expression> left)
+        : Expression{token}, operator_{op}, left_{left}
+    {
+    }
+    std::string String() const override;
+
+  public:
+    std::string operator_;
+    std::shared_ptr<Expression> left_;
+    std::shared_ptr<Expression> right_;
+};
+
 ////////////////////////
 
 class Statement : public Node

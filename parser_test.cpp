@@ -214,10 +214,58 @@ TEST_F(ParserTest, TestPrefixExpressions)
         std::shared_ptr<PrefixExpression> expr =
             std::dynamic_pointer_cast<PrefixExpression>(stmt->expression_);
         if (!expr)
-            FAIL() << "Not an IntegerLiteral - got "
+            FAIL() << "Not a Prefix Expression - got "
                    << typeid(&stmt->expression_).name();
         ASSERT_EQ(expr->operator_, tt.op);
         ASSERT_TRUE(TestIntegerLiteral(expr->right_, tt.integer_value));
+
+        std::cout << "JHER!\n";
+        std::cout << program->String() << std::endl;
+    }
+}
+
+TEST_F(ParserTest, TestParsingInfixExpressions)
+{
+    struct TestCase
+    {
+        std::string input;
+        int64_t left_value;
+        std::string op;
+        int64_t right_value;
+    };
+    std::vector<TestCase> infix_tests{
+        {"5 + 5", 5, "+", 5},   {"5 - 5", 5, "-", 5},  {"5 * 5", 5, "*", 5},
+        {"5 / 5", 5, "/", 5},   {"5 > 5", 5, ">", 5},  {"5 < 5", 5, "<", 5},
+        {"5 == 5", 5, "==", 5}, {"5 != 5", 5, "!=", 5}};
+
+    for (auto tt : infix_tests)
+    {
+        std::cout << "Testing with input = " << tt.input << std::endl;
+        std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(tt.input);
+        std::unique_ptr<Parser> parsley =
+            std::make_unique<Parser>(std::move(lex));
+        std::unique_ptr<Program> program = parsley->ParseProgram();
+        EXPECT_FALSE(parsley->CheckErrors());
+
+        std::shared_ptr<ExpressionStatement> stmt =
+            std::dynamic_pointer_cast<ExpressionStatement>(
+                program->statements_[0]);
+        if (!stmt)
+            FAIL() << "program_->statements_[0] is not an ExpressionStatement";
+
+        std::shared_ptr<InfixExpression> expr =
+            std::dynamic_pointer_cast<InfixExpression>(stmt->expression_);
+        if (!expr)
+            FAIL() << "Not an InfixExpression - got "
+                   << typeid(&stmt->expression_).name();
+
+        ASSERT_TRUE(TestIntegerLiteral(expr->left_, tt.left_value));
+
+        ASSERT_EQ(expr->operator_, tt.op);
+
+        ASSERT_TRUE(TestIntegerLiteral(expr->right_, tt.right_value));
+
+        std::cout << program->String() << std::endl;
     }
 }
 

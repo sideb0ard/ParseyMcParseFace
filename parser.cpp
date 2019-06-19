@@ -99,7 +99,7 @@ std::shared_ptr<ReturnStatement> Parser::ParseReturnStatement()
 
 std::shared_ptr<ExpressionStatement> Parser::ParseExpressionStatement()
 {
-    std::cout << "Parsing EXPRESSION Statement\n";
+    std::cout << "  Parsing EXPRESSION Statement\n";
     std::shared_ptr<ExpressionStatement> stmt =
         std::make_shared<ExpressionStatement>(cur_token_);
     stmt->expression_ = ParseExpression(Precedence::LOWEST);
@@ -114,9 +114,11 @@ bool Parser::CheckErrors()
 {
     if (errors_.empty())
         return false;
-    std::cout << "Parser had " << errors_.size() << " errors\n";
+    std::cout << "\n======================\nParser had " << errors_.size()
+              << " errors\n";
     for (auto e : errors_)
         std::cout << e << std::endl;
+    std::cout << "=======================\n";
     return true;
 }
 
@@ -142,14 +144,14 @@ void Parser::NextToken()
     peek_token_ = lexer_->NextToken();
 }
 
-bool Parser::CurTokenIs(TokenType t)
+bool Parser::CurTokenIs(TokenType t) const
 {
     if (cur_token_.type_.compare(t) == 0)
         return true;
     return false;
 }
 
-bool Parser::PeekTokenIs(TokenType t)
+bool Parser::PeekTokenIs(TokenType t) const
 {
     if (peek_token_.type_.compare(t) == 0)
         return true;
@@ -166,28 +168,58 @@ void Parser::PeekError(TokenType t)
 
 std::shared_ptr<Expression> Parser::ParseExpression(Precedence p)
 {
+    std::cout << "      ParseExpression - cur token:" << cur_token_.type_
+              << "!\n";
+    std::shared_ptr<Expression> left_expr;
     if (cur_token_.type_ == IDENT)
-        return ParseIdentifier();
+        left_expr = ParseIdentifier();
     else if (cur_token_.type_ == INT)
-        return ParseIntegerLiteral();
+        left_expr = ParseIntegerLiteral();
     else if (cur_token_.type_ == BANG)
-        return ParsePrefixExpression();
+        left_expr = ParsePrefixExpression();
     else if (cur_token_.type_ == MINUS)
-        return ParsePrefixExpression();
+        left_expr = ParsePrefixExpression();
 
-    std::stringstream err;
-    err << "no prefix parse function for " << cur_token_.type_ << " found.";
-    errors_.push_back(err.str());
-    return nullptr;
+    if (!left_expr)
+        return nullptr;
+
+    std::cout << "Gots LEFT_EXPR\n";
+
+    std::cout << "PeekTOken is " << peek_token_.type_
+              << " Precedecne is:" << static_cast<int>(p)
+              << " and PeepPrecedence is " << static_cast<int>(PeekPrecedence())
+              << std::endl;
+    while (!PeekTokenIs(SEMICOLON) && p < PeekPrecedence())
+    {
+        std::cout << "WHILEin...' - cur_token.type:" << cur_token_.type_
+                  << " \n";
+        if (peek_token_.type_ == PLUS || peek_token_.type_ == MINUS ||
+            peek_token_.type_ == SLASH || peek_token_.type_ == ASTERISK ||
+            peek_token_.type_ == EQ || peek_token_.type_ == NOT_EQ ||
+            peek_token_.type_ == LT || peek_token_.type_ == GT)
+        {
+            std::cout << "      ParseExpression is INFIX!\n";
+            NextToken();
+            left_expr = ParseInfixExpression(left_expr);
+        }
+        else
+        {
+            return left_expr;
+        }
+    }
+    return left_expr;
 }
 
 std::shared_ptr<Expression> Parser::ParseIdentifier()
 {
+    std::cout << "          ParseIdentifier!\n";
     return std::make_shared<Identifier>(cur_token_, cur_token_.literal_);
 }
 
 std::shared_ptr<Expression> Parser::ParseIntegerLiteral()
 {
+    std::cout << "          ParseIntegerLiteral! " << cur_token_.literal_
+              << "\n";
     auto literal = std::make_shared<IntegerLiteral>(cur_token_);
     int64_t val = std::stoll(cur_token_.literal_, nullptr, 10);
     literal->value_ = val;
@@ -196,6 +228,7 @@ std::shared_ptr<Expression> Parser::ParseIntegerLiteral()
 
 std::shared_ptr<Expression> Parser::ParsePrefixExpression()
 {
+    std::cout << "          ParsePrefixExpression!\n";
     auto expression =
         std::make_shared<PrefixExpression>(cur_token_, cur_token_.literal_);
 
@@ -204,6 +237,44 @@ std::shared_ptr<Expression> Parser::ParsePrefixExpression()
     expression->right_ = ParseExpression(Precedence::PREFIX);
 
     return expression;
+}
+
+std::shared_ptr<Expression>
+Parser::ParseInfixExpression(std::shared_ptr<Expression> left)
+{
+    std::cout << "          ParseInfixExpression!\n";
+    auto expression = std::make_shared<InfixExpression>(
+        cur_token_, cur_token_.literal_, left);
+
+    auto precedence = CurPrecedence();
+    NextToken();
+    expression->right_ = ParseExpression(precedence);
+
+    return expression;
+}
+
+Precedence Parser::PeekPrecedence() const
+{
+    auto it = precedences.find(peek_token_.type_);
+    if (it != precedences.end())
+    {
+        std::cout << "found precedence! for " << peek_token_.type_ << " ("
+                  << static_cast<int>(it->second) << ")\n";
+        return it->second;
+    }
+    std::cout << "DIDNAE find precedence! for " << peek_token_.type_
+              << std::endl;
+    return Precedence::LOWEST;
+}
+
+Precedence Parser::CurPrecedence() const
+{
+    auto it = precedences.find(cur_token_.type_);
+    if (it != precedences.end())
+    {
+        return it->second;
+    }
+    return Precedence::LOWEST;
 }
 
 } // namespace parser

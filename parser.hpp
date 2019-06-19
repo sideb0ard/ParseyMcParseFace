@@ -3,6 +3,7 @@
 #include <optional>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "ast.hpp"
@@ -28,6 +29,12 @@ enum class Precedence
     CALL
 };
 
+const std::unordered_map<TokenType, Precedence> precedences{
+    {EQ, Precedence::EQUALS},      {NOT_EQ, Precedence::EQUALS},
+    {LT, Precedence::LESSGREATER}, {GT, Precedence::LESSGREATER},
+    {PLUS, Precedence::SUM},       {MINUS, Precedence::SUM},
+    {SLASH, Precedence::PRODUCT},  {ASTERISK, Precedence::PRODUCT}};
+
 class Parser
 {
   public:
@@ -45,12 +52,17 @@ class Parser
     std::shared_ptr<Expression> ParseIdentifier();
     std::shared_ptr<Expression> ParseIntegerLiteral();
     std::shared_ptr<Expression> ParsePrefixExpression();
+    std::shared_ptr<Expression>
+    ParseInfixExpression(std::shared_ptr<Expression> left);
 
     bool ExpectPeek(TokenType t);
-    bool CurTokenIs(TokenType t);
-    bool PeekTokenIs(TokenType t);
+    bool CurTokenIs(TokenType t) const;
+    bool PeekTokenIs(TokenType t) const;
 
     void PeekError(TokenType t);
+
+    Precedence PeekPrecedence() const;
+    Precedence CurPrecedence() const;
     void NextToken();
 
   private:

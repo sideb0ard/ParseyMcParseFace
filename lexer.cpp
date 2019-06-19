@@ -69,7 +69,7 @@ Token Lexer::NextToken()
         if (PeekChar() == '=')
         {
             ReadChar();
-            tok.type_ = NE;
+            tok.type_ = NOT_EQ;
             tok.literal_ = "!=";
         }
         else
