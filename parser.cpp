@@ -71,6 +71,7 @@ std::shared_ptr<LetStatement> Parser::ParseLetStatement()
         return nullptr;
     }
 
+    // TODO! something
     while (!CurTokenIs(SEMICOLON))
         NextToken();
 
@@ -166,6 +167,16 @@ void Parser::PeekError(TokenType t)
     errors_.push_back(msg.str());
 }
 
+static bool IsInfixOperator(TokenType type)
+{
+    if (type == PLUS || type == MINUS || type == SLASH || type == ASTERISK ||
+        type == EQ || type == NOT_EQ || type == LT || type == GT)
+    {
+        return true;
+    }
+    return false;
+}
+
 std::shared_ptr<Expression> Parser::ParseExpression(Precedence p)
 {
     std::cout << "      ParseExpression - cur token:" << cur_token_.type_
@@ -193,10 +204,7 @@ std::shared_ptr<Expression> Parser::ParseExpression(Precedence p)
     {
         std::cout << "WHILEin...' - cur_token.type:" << cur_token_.type_
                   << " \n";
-        if (peek_token_.type_ == PLUS || peek_token_.type_ == MINUS ||
-            peek_token_.type_ == SLASH || peek_token_.type_ == ASTERISK ||
-            peek_token_.type_ == EQ || peek_token_.type_ == NOT_EQ ||
-            peek_token_.type_ == LT || peek_token_.type_ == GT)
+        if (IsInfixOperator(peek_token_.type_))
         {
             std::cout << "      ParseExpression is INFIX!\n";
             NextToken();

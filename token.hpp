@@ -2,10 +2,10 @@
 
 #include <string>
 
-using TokenType = std::string;
-
 namespace token
 {
+using TokenType = std::string;
+
 const TokenType ILLEGAL = "ILLEGAL";
 const TokenType EOFF = "EOF";
 
@@ -45,7 +45,7 @@ class Token
 {
   public:
     Token(){};
-    Token(std::string type, std::string literal)
+    Token(TokenType type, std::string literal)
         : type_{type}, literal_{literal} {};
 
     friend std::ostream &operator<<(std::ostream &, const Token &);

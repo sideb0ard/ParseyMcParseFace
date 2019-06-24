@@ -224,7 +224,7 @@ TEST_F(ParserTest, TestPrefixExpressions)
     }
 }
 
-TEST_F(ParserTest, TestParsingInfixExpressions)
+TEST_F(ParserTest, TestInfixExpressions)
 {
     struct TestCase
     {
@@ -266,6 +266,41 @@ TEST_F(ParserTest, TestParsingInfixExpressions)
         ASSERT_TRUE(TestIntegerLiteral(expr->right_, tt.right_value));
 
         std::cout << program->String() << std::endl;
+    }
+}
+TEST_F(ParserTest, TestOperatorPrecedence)
+{
+    struct TestCase
+    {
+        std::string input;
+        std::string expected;
+    };
+    std::vector<TestCase> tests{
+        {"-a * b", "((-a)*b)"},
+        {"!-a", "(!(-a))"},
+        {"a + b + c", "((a+b)+c)"},
+        {"a + b - c", "((a+b)-c)"},
+        {"a * b * c", "((a*b)*c)"},
+        {"a * b / c", "((a*b)/c)"},
+        {"a + b / c", "(a+(b/c))"},
+        {"a + b * c + d / e - f", "(((a+(b*c))+(d/e))-f)"},
+        {"3 + 4; -5 * 5", "(3+4)((-5)*5)"},
+        {"5 > 5 == 3 < 4", "((5>5)==(3<4))"},
+        {"5 < 4 != 3 > 4", "((5<4)!=(3>4))"},
+        {"3 + 4 * 5 == 3 * 1 + 4 * 5", "((3+(4*5))==((3*1)+(4*5)))"}};
+
+    for (auto tt : tests)
+    {
+        std::cout << "Testing with input = " << tt.input << std::endl;
+        std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(tt.input);
+        std::unique_ptr<Parser> parsley =
+            std::make_unique<Parser>(std::move(lex));
+        std::unique_ptr<Program> program = parsley->ParseProgram();
+        EXPECT_FALSE(parsley->CheckErrors());
+
+        auto actual = program->String();
+        std::cout << program->String() << std::endl;
+        ASSERT_EQ(actual, tt.expected);
     }
 }
 
