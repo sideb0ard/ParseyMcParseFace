@@ -1,5 +1,6 @@
 #include <iostream>
 #include <memory>
+#include <variant>
 
 #include "gtest/gtest.h"
 
@@ -43,6 +44,84 @@ bool TestLetStatement(std::shared_ptr<Statement> s, std::string name)
     if (ls->name_->TokenLiteral().compare(name) != 0)
         return false;
     std::cout << "NAME LITERAL WAS All good!\n";
+
+    return true;
+}
+
+bool TestIdentifier(std::shared_ptr<Expression> expr, std::string val)
+{
+    std::shared_ptr<Identifier> ident =
+        std::dynamic_pointer_cast<Identifier>(expr);
+    if (!ident)
+        return false;
+    if (ident->value_ != val)
+        return false;
+    if (ident->TokenLiteral() != val)
+        return false;
+    return true;
+}
+
+bool TestIntegerLiteral(std::shared_ptr<Expression> expr, int64_t value)
+{
+    std::shared_ptr<IntegerLiteral> integ =
+        std::dynamic_pointer_cast<IntegerLiteral>(expr);
+    if (!integ)
+        return false;
+    if (integ->value_ != value)
+        return false;
+    if (integ->TokenLiteral() != std::to_string(value))
+        return false;
+    return true;
+}
+
+bool TestLiteralExpression(std::shared_ptr<Expression> expr,
+                           std::variant<int64_t, std::string, bool> val)
+{
+
+    if (const auto int_ptr(std::get_if<int64_t>(&val)); int_ptr)
+    {
+        std::cout << "int!" << *int_ptr << "\n";
+        return TestIntegerLiteral(expr, *int_ptr);
+    }
+    else if (const auto string_ptr(std::get_if<std::string>(&val)); string_ptr)
+    {
+        std::cout << "string!" << *string_ptr << "\n";
+        return TestIdentifier(expr, *string_ptr);
+    }
+    else if (const auto bool_ptr(std::get_if<bool>(&val)); bool_ptr)
+    {
+        std::cout << "bool!" << *bool_ptr << "\n";
+    }
+    return false;
+}
+
+bool TestBooleanLiteral(std::shared_ptr<Expression> expr, bool val)
+{
+    // std::shared_ptr<Boolean> boool;
+    return true;
+}
+
+bool TestInfixExpression(std::shared_ptr<Expression> expr,
+                         std::variant<int64_t, std::string, bool> left,
+                         std::string op,
+                         std::variant<int64_t, std::string, bool> right)
+{
+    std::shared_ptr<InfixExpression> op_expr =
+        std::dynamic_pointer_cast<InfixExpression>(expr);
+    if (!op_expr)
+    {
+        std::cerr << "Not an InfixExpression - got " << typeid(&expr).name();
+        return false;
+    }
+
+    if (!TestLiteralExpression(op_expr->left_, left))
+        return false;
+
+    if (op_expr->operator_.compare(op) != 0)
+        return false;
+
+    if (!TestLiteralExpression(op_expr->right_, right))
+        return false;
 
     return true;
 }
@@ -173,19 +252,6 @@ TEST_F(ParserTest, TestIntegerLiteralExpression)
     ASSERT_EQ(literal->TokenLiteral(), "5");
 }
 
-bool TestIntegerLiteral(std::shared_ptr<Expression> expr, int64_t value)
-{
-    std::shared_ptr<IntegerLiteral> integ =
-        std::dynamic_pointer_cast<IntegerLiteral>(expr);
-    if (!integ)
-        return false;
-    if (integ->value_ != value)
-        return false;
-    if (integ->TokenLiteral() != std::to_string(value))
-        return false;
-
-    return true;
-}
 TEST_F(ParserTest, TestPrefixExpressions)
 {
 
@@ -253,19 +319,10 @@ TEST_F(ParserTest, TestInfixExpressions)
         if (!stmt)
             FAIL() << "program_->statements_[0] is not an ExpressionStatement";
 
-        std::shared_ptr<InfixExpression> expr =
-            std::dynamic_pointer_cast<InfixExpression>(stmt->expression_);
-        if (!expr)
-            FAIL() << "Not an InfixExpression - got "
-                   << typeid(&stmt->expression_).name();
-
-        ASSERT_TRUE(TestIntegerLiteral(expr->left_, tt.left_value));
-
-        ASSERT_EQ(expr->operator_, tt.op);
-
-        ASSERT_TRUE(TestIntegerLiteral(expr->right_, tt.right_value));
-
-        std::cout << program->String() << std::endl;
+        std::variant<int64_t, std::string, bool> left = tt.left_value;
+        std::variant<int64_t, std::string, bool> right = tt.right_value;
+        ASSERT_TRUE(TestInfixExpression(stmt->expression_, left, tt.op, right));
+        // std::cout << program->String() << std::endl;
     }
 }
 TEST_F(ParserTest, TestOperatorPrecedence)
