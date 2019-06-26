@@ -196,6 +196,8 @@ std::shared_ptr<Expression> Parser::ParseExpression(Precedence p)
         left_expr = ParseBoolean();
     else if (cur_token_.type_ == FALSE)
         left_expr = ParseBoolean();
+    else if (cur_token_.type_ == LPAREN)
+        left_expr = ParseGroupedExpression();
 
     if (!left_expr)
         return nullptr;
@@ -271,6 +273,15 @@ Parser::ParseInfixExpression(std::shared_ptr<Expression> left)
     expression->right_ = ParseExpression(precedence);
 
     return expression;
+}
+
+std::shared_ptr<Expression> Parser::ParseGroupedExpression()
+{
+    NextToken();
+    std::shared_ptr<Expression> expr = ParseExpression(Precedence::LOWEST);
+    if (!ExpectPeek(RPAREN))
+        return nullptr;
+    return expr;
 }
 
 Precedence Parser::PeekPrecedence() const

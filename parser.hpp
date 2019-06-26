@@ -54,6 +54,7 @@ class Parser
     std::shared_ptr<Expression> ParsePrefixExpression();
     std::shared_ptr<Expression>
     ParseInfixExpression(std::shared_ptr<Expression> left);
+    std::shared_ptr<Expression> ParseGroupedExpression();
 
     bool ExpectPeek(TokenType t);
     bool CurTokenIs(TokenType t) const;
