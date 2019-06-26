@@ -90,6 +90,8 @@ std::shared_ptr<ReturnStatement> Parser::ParseReturnStatement()
 
     NextToken();
 
+    stmt->return_value_ = ParseExpression(Precedence::LOWEST);
+
     while (!CurTokenIs(SEMICOLON))
         NextToken();
 
@@ -190,6 +192,10 @@ std::shared_ptr<Expression> Parser::ParseExpression(Precedence p)
         left_expr = ParsePrefixExpression();
     else if (cur_token_.type_ == MINUS)
         left_expr = ParsePrefixExpression();
+    else if (cur_token_.type_ == TRUE)
+        left_expr = ParseBoolean();
+    else if (cur_token_.type_ == FALSE)
+        left_expr = ParseBoolean();
 
     if (!left_expr)
         return nullptr;
@@ -222,6 +228,12 @@ std::shared_ptr<Expression> Parser::ParseIdentifier()
 {
     std::cout << "          ParseIdentifier!\n";
     return std::make_shared<Identifier>(cur_token_, cur_token_.literal_);
+}
+
+std::shared_ptr<Expression> Parser::ParseBoolean()
+{
+    std::cout << "          ParseIdentifier!\n";
+    return std::make_shared<BooleanExpression>(cur_token_, CurTokenIs(TRUE));
 }
 
 std::shared_ptr<Expression> Parser::ParseIntegerLiteral()

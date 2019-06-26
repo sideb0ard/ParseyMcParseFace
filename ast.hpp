@@ -54,6 +54,21 @@ class IntegerLiteral : public Expression
     int64_t value_;
 };
 
+class BooleanExpression : public Expression
+{
+  public:
+    BooleanExpression() {}
+    BooleanExpression(Token token) : Expression{token} {}
+    BooleanExpression(Token token, bool val) : Expression{token}, value_{val}
+    {
+        std::cout << "New BOOL! " << val << std::endl;
+    }
+    std::string String() const override;
+
+  public:
+    bool value_;
+};
+
 class PrefixExpression : public Expression
 {
   public:

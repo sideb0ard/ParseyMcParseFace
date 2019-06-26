@@ -1,5 +1,6 @@
 #include <iostream>
 #include <memory>
+#include <type_traits>
 #include <variant>
 
 #include "gtest/gtest.h"
@@ -12,6 +13,11 @@ using namespace ast;
 using namespace lexer;
 using namespace token;
 using namespace parser;
+
+// helper type for the visitor #3
+template <class T> struct always_false : std::false_type
+{
+};
 
 namespace
 {
@@ -74,6 +80,24 @@ bool TestIntegerLiteral(std::shared_ptr<Expression> expr, int64_t value)
     return true;
 }
 
+bool TestBooleanLiteral(std::shared_ptr<Expression> expr, bool val)
+{
+    std::shared_ptr<BooleanExpression> bool_expr =
+        std::dynamic_pointer_cast<BooleanExpression>(expr);
+    if (!bool_expr)
+    {
+        std::cerr << "Not an BooleanExpression - got " << typeid(&expr).name();
+        return false;
+    }
+    std::cout << "TEST BOOOOL! " << bool_expr->String()
+              << " actual:" << bool_expr->value_ << " // expected: " << val
+              << std::endl;
+    if (bool_expr->value_ != val)
+        return false;
+
+    return true;
+}
+
 bool TestLiteralExpression(std::shared_ptr<Expression> expr,
                            std::variant<int64_t, std::string, bool> val)
 {
@@ -90,15 +114,10 @@ bool TestLiteralExpression(std::shared_ptr<Expression> expr,
     }
     else if (const auto bool_ptr(std::get_if<bool>(&val)); bool_ptr)
     {
-        std::cout << "bool!" << *bool_ptr << "\n";
+        std::cout << "bool test val!" << *bool_ptr << "\n";
+        return TestBooleanLiteral(expr, *bool_ptr);
     }
     return false;
-}
-
-bool TestBooleanLiteral(std::shared_ptr<Expression> expr, bool val)
-{
-    // std::shared_ptr<Boolean> boool;
-    return true;
 }
 
 bool TestInfixExpression(std::shared_ptr<Expression> expr,
@@ -156,36 +175,39 @@ let foobar = 838383;
     }
 }
 
-bool TestReturnStatement(std::shared_ptr<Statement> s)
-{
-    std::cout << "Literal is " << s->TokenLiteral() << std::endl;
-
-    if (s->TokenLiteral().compare("return") != 0)
-        return false;
-
-    return true;
-}
-
 TEST_F(ParserTest, TestReturnStatements)
 {
-    std::string input = R"(
-return 5;
-return 10;
-return 993322;
-)";
-
-    std::cout << "Return Statements Test setup!\n";
-    std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(input);
-    std::unique_ptr<Parser> parsley = std::make_unique<Parser>(std::move(lex));
-    std::unique_ptr<Program> program = parsley->ParseProgram();
-    EXPECT_FALSE(parsley->CheckErrors());
-
-    ASSERT_EQ(3, program->statements_.size());
-    int len = program->statements_.size();
-    for (int i = 0; i < len; i++)
+    struct TestCase
     {
-        std::shared_ptr<Statement> stmt = program->statements_[i];
-        EXPECT_TRUE(TestReturnStatement(stmt));
+        std::string input;
+        std::variant<int64_t, std::string, bool> expected_val;
+    };
+    TestCase t1{"return 5;", (int64_t)5};
+    TestCase t2{"return true;", true};
+    TestCase t3{"return foobar;", "foobar"};
+    std::vector<TestCase> tests{t1, t2};
+    // std::vector<TestCase> tests{t1, t2, t3};
+
+    for (auto tt : tests)
+    {
+        std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(tt.input);
+        std::unique_ptr<Parser> parsley =
+            std::make_unique<Parser>(std::move(lex));
+        std::unique_ptr<Program> program = parsley->ParseProgram();
+        EXPECT_FALSE(parsley->CheckErrors());
+
+        ASSERT_EQ(1, program->statements_.size());
+        std::shared_ptr<ReturnStatement> stmt =
+            std::dynamic_pointer_cast<ReturnStatement>(program->statements_[0]);
+        if (!stmt)
+            FAIL() << "program->statements_[0] is not an ReturnStatement";
+        auto print_visitor = [](auto &&arg) { std::cout << arg; };
+        ASSERT_EQ(stmt->TokenLiteral(), "return");
+        std::cout << "RET VAL is" << stmt->return_value_ << " EXpected:";
+        std::visit(print_visitor, tt.expected_val);
+        std::cout << std::endl;
+        ASSERT_TRUE(
+            TestLiteralExpression(stmt->return_value_, tt.expected_val));
     }
 }
 
@@ -259,9 +281,12 @@ TEST_F(ParserTest, TestPrefixExpressions)
     {
         std::string input;
         std::string op;
-        int64_t integer_value;
+        std::variant<int64_t, std::string, bool> value;
     };
-    std::vector<TestCase> prefix_tests{{"!5", "!", 5}, {"-15", "-", 15}};
+    std::vector<TestCase> prefix_tests{{"!5", "!", (int64_t)5},
+                                       {"-15", "-", (int64_t)15},
+                                       {"!true;", "!", true},
+                                       {"!false;", "!", false}};
     for (auto tt : prefix_tests)
     {
         std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(tt.input);
@@ -283,7 +308,7 @@ TEST_F(ParserTest, TestPrefixExpressions)
             FAIL() << "Not a Prefix Expression - got "
                    << typeid(&stmt->expression_).name();
         ASSERT_EQ(expr->operator_, tt.op);
-        ASSERT_TRUE(TestIntegerLiteral(expr->right_, tt.integer_value));
+        ASSERT_TRUE(TestLiteralExpression(expr->right_, tt.value));
 
         std::cout << "JHER!\n";
         std::cout << program->String() << std::endl;
@@ -294,19 +319,32 @@ TEST_F(ParserTest, TestInfixExpressions)
 {
     struct TestCase
     {
+        TestCase(std::string inp, std::variant<int64_t, std::string, bool> lft,
+                 std::string opr, std::variant<int64_t, std::string, bool> rght)
+
+            : input{inp}, left_value{lft}, op{opr}, right_value{rght}
+        {
+        }
         std::string input;
-        int64_t left_value;
+        std::variant<int64_t, std::string, bool> left_value;
         std::string op;
-        int64_t right_value;
+        std::variant<int64_t, std::string, bool> right_value;
     };
-    std::vector<TestCase> infix_tests{
-        {"5 + 5", 5, "+", 5},   {"5 - 5", 5, "-", 5},  {"5 * 5", 5, "*", 5},
-        {"5 / 5", 5, "/", 5},   {"5 > 5", 5, ">", 5},  {"5 < 5", 5, "<", 5},
-        {"5 == 5", 5, "==", 5}, {"5 != 5", 5, "!=", 5}};
+    std::vector<TestCase> infix_tests{{"5+5", (int64_t)5, "+", (int64_t)5},
+                                      {"5 - 5", (int64_t)5, "-", (int64_t)5},
+                                      {"5 * 5", (int64_t)5, "*", (int64_t)5},
+                                      {"5 / 5", (int64_t)5, "/", (int64_t)5},
+                                      {"5 > 5", (int64_t)5, ">", (int64_t)5},
+                                      {"5 < 5", (int64_t)5, "<", (int64_t)5},
+                                      {"5 == 5", (int64_t)5, "==", (int64_t)5},
+                                      {"5 != 5", (int64_t)5, "!=", (int64_t)5},
+                                      {"true == true", true, "==", true},
+                                      {"true != false", true, "!=", false},
+                                      {"false == false", false, "==", false}};
 
     for (auto tt : infix_tests)
     {
-        std::cout << "Testing with input = " << tt.input << std::endl;
+        std::cout << "\n\nTesting with input = " << tt.input << std::endl;
         std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(tt.input);
         std::unique_ptr<Parser> parsley =
             std::make_unique<Parser>(std::move(lex));
@@ -322,9 +360,10 @@ TEST_F(ParserTest, TestInfixExpressions)
         std::variant<int64_t, std::string, bool> left = tt.left_value;
         std::variant<int64_t, std::string, bool> right = tt.right_value;
         ASSERT_TRUE(TestInfixExpression(stmt->expression_, left, tt.op, right));
+
         // std::cout << program->String() << std::endl;
     }
-}
+} // namespace
 TEST_F(ParserTest, TestOperatorPrecedence)
 {
     struct TestCase
@@ -344,11 +383,15 @@ TEST_F(ParserTest, TestOperatorPrecedence)
         {"3 + 4; -5 * 5", "(3+4)((-5)*5)"},
         {"5 > 5 == 3 < 4", "((5>5)==(3<4))"},
         {"5 < 4 != 3 > 4", "((5<4)!=(3>4))"},
-        {"3 + 4 * 5 == 3 * 1 + 4 * 5", "((3+(4*5))==((3*1)+(4*5)))"}};
+        {"3 + 4 * 5 == 3 * 1 + 4 * 5", "((3+(4*5))==((3*1)+(4*5)))"},
+        {"true", "true"},
+        {"false", "false"},
+        {"3 > 5 == false", "((3>5)==false)"},
+        {"3 < 5 == true", "((3<5)==true)"}};
 
     for (auto tt : tests)
     {
-        std::cout << "Testing with input = " << tt.input << std::endl;
+        std::cout << "\n\nTesting with input = " << tt.input << std::endl;
         std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(tt.input);
         std::unique_ptr<Parser> parsley =
             std::make_unique<Parser>(std::move(lex));
