@@ -11,6 +11,10 @@ using namespace token;
 namespace ast
 {
 
+class BlockStatement;
+
+/////////////////// NODE /////////////////
+
 class Node
 {
   public:
@@ -24,7 +28,7 @@ class Node
     Token token_;
 };
 
-///////////////////
+/////////////////// EXPRESSIONS
 
 class Expression : public Node
 {
@@ -103,7 +107,21 @@ class InfixExpression : public Expression
     std::shared_ptr<Expression> right_;
 };
 
-////////////////////////
+class IfExpression : public Expression
+{
+  public:
+    IfExpression() {}
+    IfExpression(Token token) : Expression{token} {}
+
+    std::string String() const override;
+
+  public:
+    std::shared_ptr<Expression> condition_;
+    std::shared_ptr<BlockStatement> consequence_;
+    std::shared_ptr<BlockStatement> alternative_;
+};
+
+//////////////////////// STATEMENTS.............
 
 class Statement : public Node
 {
@@ -140,6 +158,16 @@ class ExpressionStatement : public Statement
 
   public:
     std::shared_ptr<Expression> expression_;
+};
+
+class BlockStatement : public Statement
+{
+  public:
+    BlockStatement(Token toke) : Statement(toke){};
+    std::string String() const override;
+
+  public:
+    std::vector<std::shared_ptr<Statement>> statements_;
 };
 
 // ROOT //////////////////////

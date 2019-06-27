@@ -68,6 +68,33 @@ std::string PrefixExpression::String() const
     return ss.str();
 }
 
+std::string BlockStatement::String() const
+{
+    std::stringstream ss;
+    for (auto &s : statements_)
+        ss << s->String();
+
+    return ss.str();
+}
+
+std::string IfExpression::String() const
+{
+    std::stringstream ss;
+    ss << "if ";
+    if (!condition_)
+        ss << condition_->String();
+    ss << " ";
+    if (consequence_)
+        ss << consequence_->String();
+    if (alternative_)
+    {
+        ss << " else ";
+        ss << alternative_->String();
+    }
+
+    return ss.str();
+}
+
 std::string InfixExpression::String() const
 {
     std::stringstream ss;

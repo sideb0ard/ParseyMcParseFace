@@ -183,21 +183,7 @@ std::shared_ptr<Expression> Parser::ParseExpression(Precedence p)
 {
     std::cout << "      ParseExpression - cur token:" << cur_token_.type_
               << "!\n";
-    std::shared_ptr<Expression> left_expr;
-    if (cur_token_.type_ == IDENT)
-        left_expr = ParseIdentifier();
-    else if (cur_token_.type_ == INT)
-        left_expr = ParseIntegerLiteral();
-    else if (cur_token_.type_ == BANG)
-        left_expr = ParsePrefixExpression();
-    else if (cur_token_.type_ == MINUS)
-        left_expr = ParsePrefixExpression();
-    else if (cur_token_.type_ == TRUE)
-        left_expr = ParseBoolean();
-    else if (cur_token_.type_ == FALSE)
-        left_expr = ParseBoolean();
-    else if (cur_token_.type_ == LPAREN)
-        left_expr = ParseGroupedExpression();
+    std::shared_ptr<Expression> left_expr = ParseForPrefixExpression();
 
     if (!left_expr)
         return nullptr;
@@ -224,6 +210,25 @@ std::shared_ptr<Expression> Parser::ParseExpression(Precedence p)
         }
     }
     return left_expr;
+}
+
+std::shared_ptr<Expression> Parser::ParseForPrefixExpression()
+{
+    if (cur_token_.type_ == IDENT)
+        return ParseIdentifier();
+    else if (cur_token_.type_ == INT)
+        return ParseIntegerLiteral();
+    else if (cur_token_.type_ == BANG)
+        return ParsePrefixExpression();
+    else if (cur_token_.type_ == MINUS)
+        return ParsePrefixExpression();
+    else if (cur_token_.type_ == TRUE)
+        return ParseBoolean();
+    else if (cur_token_.type_ == FALSE)
+        return ParseBoolean();
+    else if (cur_token_.type_ == LPAREN)
+        return ParseGroupedExpression();
+    return nullptr;
 }
 
 std::shared_ptr<Expression> Parser::ParseIdentifier()

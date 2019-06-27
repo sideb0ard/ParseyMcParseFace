@@ -51,6 +51,7 @@ class Parser
     std::shared_ptr<Expression> ParseIdentifier();
     std::shared_ptr<Expression> ParseIntegerLiteral();
     std::shared_ptr<Expression> ParseBoolean();
+    std::shared_ptr<Expression> ParseForPrefixExpression();
     std::shared_ptr<Expression> ParsePrefixExpression();
     std::shared_ptr<Expression>
     ParseInfixExpression(std::shared_ptr<Expression> left);
