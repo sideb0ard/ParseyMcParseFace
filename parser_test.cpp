@@ -86,7 +86,8 @@ bool TestBooleanLiteral(std::shared_ptr<Expression> expr, bool val)
         std::dynamic_pointer_cast<BooleanExpression>(expr);
     if (!bool_expr)
     {
-        std::cerr << "Not an BooleanExpression - got " << typeid(&expr).name();
+        std::cerr << "Not an BooleanExpression - got " << typeid(&expr).name()
+                  << std::endl;
         return false;
     }
     std::cout << "TEST BOOOOL! " << bool_expr->String()
@@ -114,7 +115,7 @@ bool TestLiteralExpression(std::shared_ptr<Expression> expr,
     }
     else if (const auto bool_ptr(std::get_if<bool>(&val)); bool_ptr)
     {
-        std::cout << "bool test val!" << *bool_ptr << "\n";
+        std::cout << "bool test val! " << *bool_ptr << "\n";
         return TestBooleanLiteral(expr, *bool_ptr);
     }
     return false;
@@ -134,13 +135,22 @@ bool TestInfixExpression(std::shared_ptr<Expression> expr,
     }
 
     if (!TestLiteralExpression(op_expr->left_, left))
+    {
+        std::cerr << "LEFT IS not a Literal Expression!\n";
         return false;
+    }
 
     if (op_expr->operator_.compare(op) != 0)
+    {
+        std::cerr << "OP IS not a operator!\n";
         return false;
+    }
 
     if (!TestLiteralExpression(op_expr->right_, right))
+    {
+        std::cerr << "RIGHT IS not a Literal Expression!\n";
         return false;
+    }
 
     return true;
 }
@@ -249,6 +259,47 @@ TEST_F(ParserTest, TestIdentifierExpression)
                << typeid(&stmt->expression_).name();
     ASSERT_EQ(ident->value_, "foobar");
     ASSERT_EQ(ident->TokenLiteral(), "foobar");
+}
+
+TEST_F(ParserTest, TestIfExpression)
+{
+    std::string input = "if (x < y) { x }";
+    std::cout << "IFFF! -- " << input << std::endl;
+    std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(input);
+    std::unique_ptr<Parser> parsley = std::make_unique<Parser>(std::move(lex));
+    std::unique_ptr<Program> program = parsley->ParseProgram();
+    EXPECT_FALSE(parsley->CheckErrors());
+    ASSERT_EQ(1, program->statements_.size());
+
+    std::shared_ptr<ExpressionStatement> stmt =
+        std::dynamic_pointer_cast<ExpressionStatement>(program->statements_[0]);
+    if (!stmt)
+        FAIL() << "program->statements_[0] is not an ExpressionStatement";
+
+    std::shared_ptr<IfExpression> expr =
+        std::dynamic_pointer_cast<IfExpression>(stmt->expression_);
+    if (!expr)
+        FAIL() << "Not an IfExpression - got "
+               << typeid(&stmt->expression_).name();
+    std::cout << "\nTESTING FOR INFIX..\n";
+    using namespace std::string_literals;
+    std::variant<int64_t, std::string, bool> left = "x"s;
+    std::variant<int64_t, std::string, bool> right = "y"s;
+    ASSERT_TRUE(TestInfixExpression(expr->condition_, left, "<", right));
+
+    ASSERT_EQ(1, expr->consequence_->statements_.size());
+    std::shared_ptr<ExpressionStatement> consequence =
+        std::dynamic_pointer_cast<ExpressionStatement>(
+            expr->consequence_->statements_[0]);
+    if (!consequence)
+        FAIL() << "Not an Expression Statement! - got "
+               << typeid(expr->consequence_->statements_[0]).name();
+
+    if (!TestIdentifier(consequence->expression_, "x"))
+        FAIL() << "Not an IdentifierExpression!\n";
+
+    if (expr->alternative_ != nullptr)
+        FAIL() << "Expression Alternative wasn't null!\n";
 }
 
 TEST_F(ParserTest, TestIntegerLiteralExpression)

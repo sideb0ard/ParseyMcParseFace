@@ -179,6 +179,8 @@ static bool IsInfixOperator(TokenType type)
     return false;
 }
 
+//////////////////////////////////////////////////////////////////
+
 std::shared_ptr<Expression> Parser::ParseExpression(Precedence p)
 {
     std::cout << "      ParseExpression - cur token:" << cur_token_.type_
@@ -228,6 +230,10 @@ std::shared_ptr<Expression> Parser::ParseForPrefixExpression()
         return ParseBoolean();
     else if (cur_token_.type_ == LPAREN)
         return ParseGroupedExpression();
+    else if (cur_token_.type_ == IF)
+        return ParseIfExpression();
+
+    std::cout << "No Prefix parser for " << cur_token_.type_ << std::endl;
     return nullptr;
 }
 
@@ -251,6 +257,28 @@ std::shared_ptr<Expression> Parser::ParseIntegerLiteral()
     int64_t val = std::stoll(cur_token_.literal_, nullptr, 10);
     literal->value_ = val;
     return literal;
+}
+
+std::shared_ptr<Expression> Parser::ParseIfExpression()
+{
+    std::cout << "          ParseIfExpression!\n";
+    auto expression = std::make_shared<IfExpression>(cur_token_);
+
+    if (!ExpectPeek(LPAREN))
+        return nullptr;
+
+    NextToken();
+    expression->condition_ = ParseExpression(Precedence::LOWEST);
+
+    if (!ExpectPeek(RPAREN))
+        return nullptr;
+
+    if (!ExpectPeek(LBRACE))
+        return nullptr;
+
+    expression->consequence_ = ParseBlockStatement();
+
+    return expression;
 }
 
 std::shared_ptr<Expression> Parser::ParsePrefixExpression()
@@ -311,6 +339,21 @@ Precedence Parser::CurPrecedence() const
         return it->second;
     }
     return Precedence::LOWEST;
+}
+
+std::shared_ptr<BlockStatement> Parser::ParseBlockStatement()
+{
+    auto block_stmt = std::make_shared<BlockStatement>(cur_token_);
+
+    NextToken();
+    while (!CurTokenIs(RBRACE) && !CurTokenIs(EOFF))
+    {
+        auto stmt = ParseStatement();
+        if (stmt)
+            block_stmt->statements_.push_back(stmt);
+        NextToken();
+    }
+    return block_stmt;
 }
 
 } // namespace parser
