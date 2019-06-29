@@ -302,6 +302,55 @@ TEST_F(ParserTest, TestIfExpression)
         FAIL() << "Expression Alternative wasn't null!\n";
 }
 
+TEST_F(ParserTest, TestIfElseExpression)
+{
+    std::string input = "if (x < y) { x } else { y }";
+    std::cout << "IFFF ELSE! -- " << input << std::endl;
+    std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(input);
+    std::unique_ptr<Parser> parsley = std::make_unique<Parser>(std::move(lex));
+    std::unique_ptr<Program> program = parsley->ParseProgram();
+    EXPECT_FALSE(parsley->CheckErrors());
+    ASSERT_EQ(1, program->statements_.size());
+
+    std::shared_ptr<ExpressionStatement> stmt =
+        std::dynamic_pointer_cast<ExpressionStatement>(program->statements_[0]);
+    if (!stmt)
+        FAIL() << "program->statements_[0] is not an ExpressionStatement";
+
+    std::shared_ptr<IfExpression> expr =
+        std::dynamic_pointer_cast<IfExpression>(stmt->expression_);
+    if (!expr)
+        FAIL() << "Not an IfExpression - got "
+               << typeid(&stmt->expression_).name();
+    std::cout << "\nTESTING FOR INFIX..\n";
+    using namespace std::string_literals;
+    std::variant<int64_t, std::string, bool> left = "x"s;
+    std::variant<int64_t, std::string, bool> right = "y"s;
+    ASSERT_TRUE(TestInfixExpression(expr->condition_, left, "<", right));
+
+    ASSERT_EQ(1, expr->consequence_->statements_.size());
+
+    std::shared_ptr<ExpressionStatement> consequence =
+        std::dynamic_pointer_cast<ExpressionStatement>(
+            expr->consequence_->statements_[0]);
+    if (!consequence)
+        FAIL() << "Not an Expression Statement! - got "
+               << typeid(expr->consequence_->statements_[0]).name();
+
+    if (!TestIdentifier(consequence->expression_, "x"))
+        FAIL() << "Not an IdentifierExpression!\n";
+
+    ASSERT_EQ(1, expr->alternative_->statements_.size());
+    std::shared_ptr<ExpressionStatement> alternative =
+        std::dynamic_pointer_cast<ExpressionStatement>(
+            expr->alternative_->statements_[0]);
+    if (!alternative)
+        FAIL() << "Not an Expression Statement! - got "
+               << typeid(expr->alternative_->statements_[0]).name();
+
+    if (!TestIdentifier(alternative->expression_, "y"))
+        FAIL() << "Not an IdentifierExpression!\n";
+}
 TEST_F(ParserTest, TestIntegerLiteralExpression)
 {
     std::string input = "5";
@@ -459,6 +508,92 @@ TEST_F(ParserTest, TestOperatorPrecedence)
         auto actual = program->String();
         std::cout << program->String() << std::endl;
         ASSERT_EQ(actual, tt.expected);
+    }
+}
+
+TEST_F(ParserTest, TestFunctionLiteral)
+{
+    std::string input = "fn(x, y) { x + y; }";
+    std::cout << "FN LITERAL! -- " << input << std::endl;
+    std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(input);
+    std::unique_ptr<Parser> parsley = std::make_unique<Parser>(std::move(lex));
+    std::unique_ptr<Program> program = parsley->ParseProgram();
+    EXPECT_FALSE(parsley->CheckErrors());
+    ASSERT_EQ(1, program->statements_.size());
+
+    std::shared_ptr<ExpressionStatement> stmt =
+        std::dynamic_pointer_cast<ExpressionStatement>(program->statements_[0]);
+    if (!stmt)
+        FAIL() << "program->statements_[0] is not an ExpressionStatement";
+
+    std::shared_ptr<FunctionLiteral> fnlit =
+        std::dynamic_pointer_cast<FunctionLiteral>(stmt->expression_);
+    if (!fnlit)
+        FAIL() << "Not an FunctionLiteral - got "
+               << typeid(&stmt->expression_).name();
+
+    ASSERT_EQ(2, fnlit->parameters_.size());
+
+    using namespace std::string_literals;
+    ASSERT_TRUE(TestLiteralExpression(fnlit->parameters_[0], "x"s));
+    ASSERT_TRUE(TestLiteralExpression(fnlit->parameters_[1], "y"s));
+
+    ASSERT_EQ(1, fnlit->body_->statements_.size());
+
+    std::shared_ptr<ExpressionStatement> body_stmt =
+        std::dynamic_pointer_cast<ExpressionStatement>(
+            fnlit->body_->statements_[0]);
+
+    if (!body_stmt)
+        FAIL() << "Not an ExpressionStatement - got "
+               << typeid(&fnlit->body_->statements_[0]).name();
+    std::cout << "\nTESTING FOR INFIX..\n";
+    ASSERT_TRUE(TestInfixExpression(body_stmt->expression_, "x"s, "+", "y"s));
+}
+
+TEST_F(ParserTest, TestFunctionParameterParsing)
+{
+    struct TestCase
+    {
+        std::string input;
+        std::vector<std::string> expected_params;
+    };
+    std::vector<TestCase> tests{
+        {"fn() {};", std::vector<std::string>()},
+        {"fn(x) {};", std::vector<std::string>{"x"}},
+        {"fn(x, y, z) {};", std::vector<std::string>{"x", "y", "z"}}};
+    for (auto tt : tests)
+    {
+        std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(tt.input);
+        std::unique_ptr<Parser> parsley =
+            std::make_unique<Parser>(std::move(lex));
+        std::unique_ptr<Program> program = parsley->ParseProgram();
+        EXPECT_FALSE(parsley->CheckErrors());
+        ASSERT_EQ(1, program->statements_.size());
+
+        std::shared_ptr<ExpressionStatement> stmt =
+            std::dynamic_pointer_cast<ExpressionStatement>(
+                program->statements_[0]);
+
+        if (!stmt)
+            FAIL() << "Not an ExpressionStatement - got "
+                   << typeid(program->statements_[0]).name();
+        std::shared_ptr<FunctionLiteral> fnlit =
+            std::dynamic_pointer_cast<FunctionLiteral>(stmt->expression_);
+
+        if (!fnlit)
+            FAIL() << "Not an FunctionLiteral - got "
+                   << typeid(&stmt->expression_).name();
+
+        ASSERT_EQ(fnlit->parameters_.size(), tt.expected_params.size());
+
+        int params_len = tt.expected_params.size();
+        for (int i = 0; i < params_len; i++)
+        {
+            std::cout << "      testing param " << i << " :"
+                      << tt.expected_params[i] << std::endl;
+            TestLiteralExpression(fnlit->parameters_[i], tt.expected_params[i]);
+        }
     }
 }
 

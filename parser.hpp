@@ -57,6 +57,9 @@ class Parser
     ParseInfixExpression(std::shared_ptr<Expression> left);
     std::shared_ptr<Expression> ParseGroupedExpression();
     std::shared_ptr<Expression> ParseIfExpression();
+    std::shared_ptr<Expression> ParseFunctionLiteral();
+
+    std::vector<std::shared_ptr<Identifier>> ParseFunctionParameters();
 
     std::shared_ptr<BlockStatement> ParseBlockStatement();
 

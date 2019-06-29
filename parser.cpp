@@ -232,6 +232,8 @@ std::shared_ptr<Expression> Parser::ParseForPrefixExpression()
         return ParseGroupedExpression();
     else if (cur_token_.type_ == IF)
         return ParseIfExpression();
+    else if (cur_token_.type_ == FUNCTION)
+        return ParseFunctionLiteral();
 
     std::cout << "No Prefix parser for " << cur_token_.type_ << std::endl;
     return nullptr;
@@ -278,7 +280,36 @@ std::shared_ptr<Expression> Parser::ParseIfExpression()
 
     expression->consequence_ = ParseBlockStatement();
 
+    if (PeekTokenIs(ELSE))
+    {
+        std::cout << "          ELSE!\n";
+        NextToken();
+
+        if (!ExpectPeek(LBRACE))
+            return nullptr;
+
+        expression->alternative_ = ParseBlockStatement();
+    }
+
     return expression;
+}
+
+std::shared_ptr<Expression> Parser::ParseFunctionLiteral()
+{
+    std::cout << "          ParsePrefixExpression!\n";
+    auto lit = std::make_shared<FunctionLiteral>(cur_token_);
+
+    if (!ExpectPeek(LPAREN))
+        return nullptr;
+
+    lit->parameters_ = ParseFunctionParameters();
+
+    if (!ExpectPeek(LBRACE))
+        return nullptr;
+
+    lit->body_ = ParseBlockStatement();
+
+    return lit;
 }
 
 std::shared_ptr<Expression> Parser::ParsePrefixExpression()
@@ -354,6 +385,37 @@ std::shared_ptr<BlockStatement> Parser::ParseBlockStatement()
         NextToken();
     }
     return block_stmt;
+}
+
+std::vector<std::shared_ptr<Identifier>> Parser::ParseFunctionParameters()
+{
+    std::vector<std::shared_ptr<Identifier>> identifiers;
+
+    if (PeekTokenIs(RPAREN))
+    {
+        NextToken();
+        return identifiers;
+    }
+
+    NextToken();
+
+    auto ident = std::make_shared<Identifier>(cur_token_, cur_token_.literal_);
+    identifiers.push_back(ident);
+    while (PeekTokenIs(COMMA))
+    {
+        NextToken();
+        NextToken();
+        auto ident =
+            std::make_shared<Identifier>(cur_token_, cur_token_.literal_);
+        identifiers.push_back(ident);
+    }
+
+    if (!ExpectPeek(RPAREN))
+    {
+        return std::vector<std::shared_ptr<Identifier>>();
+    }
+
+    return identifiers;
 }
 
 } // namespace parser

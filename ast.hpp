@@ -121,6 +121,19 @@ class IfExpression : public Expression
     std::shared_ptr<BlockStatement> alternative_;
 };
 
+class FunctionLiteral : public Expression
+{
+  public:
+    FunctionLiteral() {}
+    FunctionLiteral(Token token) : Expression{token} {}
+
+    std::string String() const override;
+
+  public:
+    std::vector<std::shared_ptr<Identifier>> parameters_;
+    std::shared_ptr<BlockStatement> body_;
+};
+
 //////////////////////// STATEMENTS.............
 
 class Statement : public Node
