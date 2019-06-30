@@ -597,6 +597,84 @@ TEST_F(ParserTest, TestFunctionParameterParsing)
     }
 }
 
+TEST_F(ParserTest, TestCallExpression)
+{
+    std::string input = "add(1, 2 * 3, 4 + 5);";
+    std::cout << "CALL EXPRESSION! -- " << input << std::endl;
+    std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(input);
+    std::unique_ptr<Parser> parsley = std::make_unique<Parser>(std::move(lex));
+    std::unique_ptr<Program> program = parsley->ParseProgram();
+    EXPECT_FALSE(parsley->CheckErrors());
+    ASSERT_EQ(1, program->statements_.size());
+
+    std::shared_ptr<ExpressionStatement> stmt =
+        std::dynamic_pointer_cast<ExpressionStatement>(program->statements_[0]);
+    if (!stmt)
+        FAIL() << "program->statements_[0] is not an ExpressionStatement";
+
+    std::shared_ptr<CallExpression> expr =
+        std::dynamic_pointer_cast<CallExpression>(stmt->expression_);
+    if (!expr)
+        FAIL() << "Not an FunctionLiteral - got "
+               << typeid(&stmt->expression_).name();
+
+    EXPECT_TRUE(TestIdentifier(expr->function_, "add"));
+
+    EXPECT_EQ(3, expr->arguments_.size());
+    EXPECT_TRUE(TestLiteralExpression(expr->arguments_[0], (int64_t)1));
+    EXPECT_TRUE(
+        TestInfixExpression(expr->arguments_[1], (int64_t)2, "*", (int64_t)3));
+    EXPECT_TRUE(
+        TestInfixExpression(expr->arguments_[2], (int64_t)4, "+", (int64_t)5));
+}
+
+TEST_F(ParserTest, TestCallExpressionParsing)
+{
+    struct TestCase
+    {
+        std::string input;
+        std::string expected_ident;
+        std::vector<std::string> expected_args;
+    };
+    std::vector<TestCase> tests{
+        {"add();", "add", std::vector<std::string>()},
+        {"add(1);", "add", std::vector<std::string>{"1"}},
+        {"add(1, 2 * 3, 4 + 5);", "add",
+         std::vector<std::string>{"1", "(2*3)", "(4+5)"}}};
+    for (auto tt : tests)
+    {
+        std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(tt.input);
+        std::unique_ptr<Parser> parsley =
+            std::make_unique<Parser>(std::move(lex));
+        std::unique_ptr<Program> program = parsley->ParseProgram();
+        EXPECT_FALSE(parsley->CheckErrors());
+        ASSERT_EQ(1, program->statements_.size());
+
+        std::shared_ptr<ExpressionStatement> stmt =
+            std::dynamic_pointer_cast<ExpressionStatement>(
+                program->statements_[0]);
+        if (!stmt)
+            FAIL() << "Not an ExpressionStatement - got "
+                   << typeid(program->statements_[0]).name();
+
+        std::shared_ptr<CallExpression> expr =
+            std::dynamic_pointer_cast<CallExpression>(stmt->expression_);
+        if (!expr)
+            FAIL() << "Not an CallExpression - got "
+                   << typeid(&stmt->expression_).name();
+
+        EXPECT_TRUE(TestIdentifier(expr->function_, tt.expected_ident));
+        ASSERT_EQ(expr->arguments_.size(), tt.expected_args.size());
+
+        int args_len = tt.expected_args.size();
+        for (int i = 0; i < args_len; i++)
+        {
+            EXPECT_TRUE(
+                expr->arguments_[i]->String().compare(tt.expected_args[i]));
+        }
+    }
+}
+
 } // namespace
 
 int main(int argc, char **argv)

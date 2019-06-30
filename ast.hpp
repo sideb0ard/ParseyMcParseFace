@@ -134,7 +134,24 @@ class FunctionLiteral : public Expression
     std::shared_ptr<BlockStatement> body_;
 };
 
-//////////////////////// STATEMENTS.............
+class CallExpression : public Expression
+{
+  public:
+    CallExpression() {}
+    CallExpression(Token token, std::shared_ptr<Expression> func)
+        : Expression{token}, function_{func}
+    {
+    }
+
+    std::string String() const override;
+
+  public:
+    std::shared_ptr<Expression> function_;
+    std::vector<std::shared_ptr<Expression>> arguments_;
+};
+
+///////////////////////////////////////////////////////////////
+//////////////////////// STATEMENTS............. //////////////
 
 class Statement : public Node
 {

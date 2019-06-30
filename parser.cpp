@@ -172,7 +172,8 @@ void Parser::PeekError(TokenType t)
 static bool IsInfixOperator(TokenType type)
 {
     if (type == PLUS || type == MINUS || type == SLASH || type == ASTERISK ||
-        type == EQ || type == NOT_EQ || type == LT || type == GT)
+        type == EQ || type == NOT_EQ || type == LT || type == GT ||
+        type == LPAREN)
     {
         return true;
     }
@@ -190,8 +191,6 @@ std::shared_ptr<Expression> Parser::ParseExpression(Precedence p)
     if (!left_expr)
         return nullptr;
 
-    std::cout << "Gots LEFT_EXPR\n";
-
     std::cout << "PeekTOken is " << peek_token_.type_
               << " Precedecne is:" << static_cast<int>(p)
               << " and PeepPrecedence is " << static_cast<int>(PeekPrecedence())
@@ -204,7 +203,10 @@ std::shared_ptr<Expression> Parser::ParseExpression(Precedence p)
         {
             std::cout << "      ParseExpression is INFIX!\n";
             NextToken();
-            left_expr = ParseInfixExpression(left_expr);
+            if (peek_token_.type_ == LPAREN)
+                left_expr = ParseCallExpression(left_expr);
+            else
+                left_expr = ParseInfixExpression(left_expr);
         }
         else
         {
@@ -418,4 +420,39 @@ std::vector<std::shared_ptr<Identifier>> Parser::ParseFunctionParameters()
     return identifiers;
 }
 
+std::shared_ptr<Expression>
+Parser::ParseCallExpression(std::shared_ptr<Expression> funct)
+{
+    std::shared_ptr<CallExpression> expr =
+        std::make_shared<CallExpression>(cur_token_, funct);
+    expr->arguments_ = ParseCallArguments();
+    return expr;
+}
+
+std::vector<std::shared_ptr<Expression>> Parser::ParseCallArguments()
+{
+    std::vector<std::shared_ptr<Expression>> arguments;
+    if (PeekTokenIs(RPAREN))
+    {
+        NextToken();
+        return arguments;
+    }
+
+    NextToken();
+    arguments.push_back(ParseExpression(Precedence::LOWEST));
+
+    while (PeekTokenIs(COMMA))
+    {
+        NextToken();
+        NextToken();
+        arguments.push_back(ParseExpression(Precedence::LOWEST));
+    }
+
+    if (!ExpectPeek(RPAREN))
+    {
+        return std::vector<std::shared_ptr<Expression>>();
+    }
+
+    return arguments;
+}
 } // namespace parser

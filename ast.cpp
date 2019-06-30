@@ -118,6 +118,28 @@ std::string FunctionLiteral::String() const
     return ss.str();
 }
 
+std::string CallExpression::String() const
+{
+    std::stringstream ss;
+
+    std::vector<std::string> arguments;
+    for (auto a : arguments_)
+        arguments.push_back(a->String());
+
+    ss << function_->String() << "("
+       << std::accumulate(arguments.begin(), arguments.end(), std::string(),
+                          [](const std::string &lhs, const std::string &rhs) {
+                              std::string ret{lhs};
+                              if (!lhs.empty() && !rhs.empty())
+                                  ret += ", ";
+                              ret += rhs;
+                              return ret;
+                          })
+       << ")";
+
+    return ss.str();
+}
+
 std::string InfixExpression::String() const
 {
     std::stringstream ss;
