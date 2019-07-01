@@ -185,7 +185,7 @@ static bool IsInfixOperator(TokenType type)
 std::shared_ptr<Expression> Parser::ParseExpression(Precedence p)
 {
     std::cout << "      ParseExpression - cur token:" << cur_token_.type_
-              << "!\n";
+              << " val: " << cur_token_.literal_ << "!\n";
     std::shared_ptr<Expression> left_expr = ParseForPrefixExpression();
 
     if (!left_expr)
@@ -201,9 +201,10 @@ std::shared_ptr<Expression> Parser::ParseExpression(Precedence p)
                   << " \n";
         if (IsInfixOperator(peek_token_.type_))
         {
-            std::cout << "      ParseExpression is INFIX!\n";
+            std::cout << "     " << peek_token_.literal_
+                      << " ParseExpression is INFIX!\n";
             NextToken();
-            if (peek_token_.type_ == LPAREN)
+            if (cur_token_.type_ == LPAREN)
                 left_expr = ParseCallExpression(left_expr);
             else
                 left_expr = ParseInfixExpression(left_expr);
@@ -423,6 +424,7 @@ std::vector<std::shared_ptr<Identifier>> Parser::ParseFunctionParameters()
 std::shared_ptr<Expression>
 Parser::ParseCallExpression(std::shared_ptr<Expression> funct)
 {
+    std::cout << "PARSE CALL EXPRESSSSSION\n";
     std::shared_ptr<CallExpression> expr =
         std::make_shared<CallExpression>(cur_token_, funct);
     expr->arguments_ = ParseCallArguments();

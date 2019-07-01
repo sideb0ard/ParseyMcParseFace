@@ -605,7 +605,12 @@ TEST_F(ParserTest, TestCallExpression)
     std::unique_ptr<Parser> parsley = std::make_unique<Parser>(std::move(lex));
     std::unique_ptr<Program> program = parsley->ParseProgram();
     EXPECT_FALSE(parsley->CheckErrors());
-    ASSERT_EQ(1, program->statements_.size());
+    EXPECT_EQ(1, program->statements_.size());
+    if (program->statements_.size() != 1)
+    {
+        for (auto s : program->statements_)
+            std::cout << s->String() << std::endl;
+    }
 
     std::shared_ptr<ExpressionStatement> stmt =
         std::dynamic_pointer_cast<ExpressionStatement>(program->statements_[0]);
@@ -643,6 +648,7 @@ TEST_F(ParserTest, TestCallExpressionParsing)
          std::vector<std::string>{"1", "(2*3)", "(4+5)"}}};
     for (auto tt : tests)
     {
+        std::cout << "\nTesting! input: " << tt.input << std::endl;
         std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(tt.input);
         std::unique_ptr<Parser> parsley =
             std::make_unique<Parser>(std::move(lex));
@@ -669,8 +675,10 @@ TEST_F(ParserTest, TestCallExpressionParsing)
         int args_len = tt.expected_args.size();
         for (int i = 0; i < args_len; i++)
         {
-            EXPECT_TRUE(
-                expr->arguments_[i]->String().compare(tt.expected_args[i]));
+            std::cout << "\nComparing " << expr->arguments_[i]->String()
+                      << " with expected: " << tt.expected_args[i] << std::endl;
+            EXPECT_TRUE(expr->arguments_[i]->String().compare(
+                            tt.expected_args[i]) == 0);
         }
     }
 }

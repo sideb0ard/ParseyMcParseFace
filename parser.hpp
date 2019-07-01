@@ -32,7 +32,8 @@ const std::unordered_map<TokenType, Precedence> precedences{
     {EQ, Precedence::EQUALS},      {NOT_EQ, Precedence::EQUALS},
     {LT, Precedence::LESSGREATER}, {GT, Precedence::LESSGREATER},
     {PLUS, Precedence::SUM},       {MINUS, Precedence::SUM},
-    {SLASH, Precedence::PRODUCT},  {ASTERISK, Precedence::PRODUCT}};
+    {SLASH, Precedence::PRODUCT},  {ASTERISK, Precedence::PRODUCT},
+    {LPAREN, Precedence::CALL}};
 
 class Parser
 {
