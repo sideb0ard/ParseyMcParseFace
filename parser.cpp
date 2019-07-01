@@ -71,8 +71,11 @@ std::shared_ptr<LetStatement> Parser::ParseLetStatement()
         return nullptr;
     }
 
-    // TODO! something
-    while (!CurTokenIs(SEMICOLON))
+    NextToken();
+
+    stmt->value_ = ParseExpression(Precedence::LOWEST);
+
+    if (PeekTokenIs(SEMICOLON))
         NextToken();
 
     std::cout << "Returning a " << typeid(stmt).name() << std::endl;
@@ -92,7 +95,7 @@ std::shared_ptr<ReturnStatement> Parser::ParseReturnStatement()
 
     stmt->return_value_ = ParseExpression(Precedence::LOWEST);
 
-    while (!CurTokenIs(SEMICOLON))
+    if (PeekTokenIs(SEMICOLON))
         NextToken();
 
     std::cout << "Returning a " << typeid(stmt).name() << std::endl;

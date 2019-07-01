@@ -4,10 +4,12 @@
 #include <string>
 
 #include "lexer.hpp"
+#include "parser.hpp"
 #include "token.hpp"
 
 using namespace lexer;
 using namespace token;
+using namespace parser;
 
 int main()
 {
@@ -22,11 +24,12 @@ int main()
             continue;
         }
 
-        Lexer lex{input};
+        std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(input);
+        std::unique_ptr<Parser> parsley =
+            std::make_unique<Parser>(std::move(lex));
+        std::unique_ptr<Program> program = parsley->ParseProgram();
 
-        for (Token tok = lex.NextToken(); tok.type_ != EOFF;
-             tok = lex.NextToken())
-            std::cout << tok << std::endl;
+        std::cout << program->String() << std::endl;
 
         std::cout << prompt;
     }

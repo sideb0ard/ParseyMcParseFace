@@ -157,31 +157,38 @@ bool TestInfixExpression(std::shared_ptr<Expression> expr,
 
 TEST_F(ParserTest, TestLetStatements)
 {
-    std::string input = R"(
-let x = 5;
-let y = 10;
-let foobar = 838383;
-)";
-
-    std::vector<std::string> tests = {
-        {"x"},
-        {"y"},
-        {"foobar"},
+    struct TestCase
+    {
+        std::string input;
+        std::string expected_ident;
+        std::variant<int64_t, std::string, bool> expected_val;
+    };
+    using namespace std::string_literals;
+    std::vector<TestCase> tests = {
+        {"let x = 5;", "x", (int64_t)5},
+        {"let y = true;", "y", true},
+        {"let foobar = y;", "foobar", "y"s},
     };
 
-    std::cout << "Parsey Test setup!\n";
-    std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(input);
-    std::unique_ptr<Parser> parsley = std::make_unique<Parser>(std::move(lex));
-    std::unique_ptr<Program> program = parsley->ParseProgram();
-    EXPECT_FALSE(parsley->CheckErrors());
-
-    const int tests_len = tests.size();
-    ASSERT_EQ(tests_len, program->statements_.size());
-    for (int i = 0; i < tests_len; i++)
+    for (auto &tt : tests)
     {
-        std::shared_ptr<Statement> stmt = program->statements_[i];
-        std::string tt = tests[i];
-        EXPECT_TRUE(TestLetStatement(stmt, tt));
+
+        std::cout << "Parsey Test setup!\n";
+        std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(tt.input);
+        std::unique_ptr<Parser> parsley =
+            std::make_unique<Parser>(std::move(lex));
+        std::unique_ptr<Program> program = parsley->ParseProgram();
+        EXPECT_FALSE(parsley->CheckErrors());
+
+        EXPECT_TRUE(
+            TestLetStatement(program->statements_[0], tt.expected_ident));
+
+        std::shared_ptr<LetStatement> stmt =
+            std::dynamic_pointer_cast<LetStatement>(program->statements_[0]);
+        if (!stmt)
+            FAIL() << "program->statements_[0] is not an LetStatement";
+
+        EXPECT_TRUE(TestLiteralExpression(stmt->value_, tt.expected_val));
     }
 }
 
@@ -211,6 +218,7 @@ TEST_F(ParserTest, TestReturnStatements)
             std::dynamic_pointer_cast<ReturnStatement>(program->statements_[0]);
         if (!stmt)
             FAIL() << "program->statements_[0] is not an ReturnStatement";
+
         auto print_visitor = [](auto &&arg) { std::cout << arg; };
         ASSERT_EQ(stmt->TokenLiteral(), "return");
         std::cout << "RET VAL is" << stmt->return_value_ << " EXpected:";
