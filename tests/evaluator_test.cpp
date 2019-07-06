@@ -48,7 +48,7 @@ std::shared_ptr<Object> TestEval(std::string input)
     std::unique_ptr<Parser> parsley = std::make_unique<Parser>(std::move(lex));
     EXPECT_FALSE(parsley->CheckErrors());
 
-    std::unique_ptr<Program> program = parsley->ParseProgram();
+    std::shared_ptr<Program> program = parsley->ParseProgram();
     std::cout << "Program has " << program->statements_.size() << " statements"
               << std::endl;
     EXPECT_EQ(1, program->statements_.size());

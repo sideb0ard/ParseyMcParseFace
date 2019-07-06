@@ -177,7 +177,7 @@ TEST_F(ParserTest, TestLetStatements)
         std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(tt.input);
         std::unique_ptr<Parser> parsley =
             std::make_unique<Parser>(std::move(lex));
-        std::unique_ptr<Program> program = parsley->ParseProgram();
+        std::shared_ptr<Program> program = parsley->ParseProgram();
         EXPECT_FALSE(parsley->CheckErrors());
 
         EXPECT_TRUE(
@@ -210,7 +210,7 @@ TEST_F(ParserTest, TestReturnStatements)
         std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(tt.input);
         std::unique_ptr<Parser> parsley =
             std::make_unique<Parser>(std::move(lex));
-        std::unique_ptr<Program> program = parsley->ParseProgram();
+        std::shared_ptr<Program> program = parsley->ParseProgram();
         EXPECT_FALSE(parsley->CheckErrors());
 
         ASSERT_EQ(1, program->statements_.size());
@@ -251,7 +251,7 @@ TEST_F(ParserTest, TestIdentifierExpression)
     std::string input = "foobar";
     std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(input);
     std::unique_ptr<Parser> parsley = std::make_unique<Parser>(std::move(lex));
-    std::unique_ptr<Program> program = parsley->ParseProgram();
+    std::shared_ptr<Program> program = parsley->ParseProgram();
     EXPECT_FALSE(parsley->CheckErrors());
     ASSERT_EQ(1, program->statements_.size());
 
@@ -275,7 +275,7 @@ TEST_F(ParserTest, TestIfExpression)
     std::cout << "IFFF! -- " << input << std::endl;
     std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(input);
     std::unique_ptr<Parser> parsley = std::make_unique<Parser>(std::move(lex));
-    std::unique_ptr<Program> program = parsley->ParseProgram();
+    std::shared_ptr<Program> program = parsley->ParseProgram();
     EXPECT_FALSE(parsley->CheckErrors());
     ASSERT_EQ(1, program->statements_.size());
 
@@ -316,7 +316,7 @@ TEST_F(ParserTest, TestIfElseExpression)
     std::cout << "IFFF ELSE! -- " << input << std::endl;
     std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(input);
     std::unique_ptr<Parser> parsley = std::make_unique<Parser>(std::move(lex));
-    std::unique_ptr<Program> program = parsley->ParseProgram();
+    std::shared_ptr<Program> program = parsley->ParseProgram();
     EXPECT_FALSE(parsley->CheckErrors());
     ASSERT_EQ(1, program->statements_.size());
 
@@ -364,7 +364,7 @@ TEST_F(ParserTest, TestIntegerLiteralExpression)
     std::string input = "5";
     std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(input);
     std::unique_ptr<Parser> parsley = std::make_unique<Parser>(std::move(lex));
-    std::unique_ptr<Program> program = parsley->ParseProgram();
+    std::shared_ptr<Program> program = parsley->ParseProgram();
     EXPECT_FALSE(parsley->CheckErrors());
     ASSERT_EQ(1, program->statements_.size());
 
@@ -400,7 +400,7 @@ TEST_F(ParserTest, TestPrefixExpressions)
         std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(tt.input);
         std::unique_ptr<Parser> parsley =
             std::make_unique<Parser>(std::move(lex));
-        std::unique_ptr<Program> program = parsley->ParseProgram();
+        std::shared_ptr<Program> program = parsley->ParseProgram();
         EXPECT_FALSE(parsley->CheckErrors());
         ASSERT_EQ(1, program->statements_.size());
 
@@ -456,7 +456,7 @@ TEST_F(ParserTest, TestInfixExpressions)
         std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(tt.input);
         std::unique_ptr<Parser> parsley =
             std::make_unique<Parser>(std::move(lex));
-        std::unique_ptr<Program> program = parsley->ParseProgram();
+        std::shared_ptr<Program> program = parsley->ParseProgram();
         EXPECT_FALSE(parsley->CheckErrors());
 
         std::shared_ptr<ExpressionStatement> stmt =
@@ -510,7 +510,7 @@ TEST_F(ParserTest, TestOperatorPrecedence)
         std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(tt.input);
         std::unique_ptr<Parser> parsley =
             std::make_unique<Parser>(std::move(lex));
-        std::unique_ptr<Program> program = parsley->ParseProgram();
+        std::shared_ptr<Program> program = parsley->ParseProgram();
         EXPECT_FALSE(parsley->CheckErrors());
 
         auto actual = program->String();
@@ -525,7 +525,7 @@ TEST_F(ParserTest, TestFunctionLiteral)
     std::cout << "FN LITERAL! -- " << input << std::endl;
     std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(input);
     std::unique_ptr<Parser> parsley = std::make_unique<Parser>(std::move(lex));
-    std::unique_ptr<Program> program = parsley->ParseProgram();
+    std::shared_ptr<Program> program = parsley->ParseProgram();
     EXPECT_FALSE(parsley->CheckErrors());
     ASSERT_EQ(1, program->statements_.size());
 
@@ -575,7 +575,7 @@ TEST_F(ParserTest, TestFunctionParameterParsing)
         std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(tt.input);
         std::unique_ptr<Parser> parsley =
             std::make_unique<Parser>(std::move(lex));
-        std::unique_ptr<Program> program = parsley->ParseProgram();
+        std::shared_ptr<Program> program = parsley->ParseProgram();
         EXPECT_FALSE(parsley->CheckErrors());
         ASSERT_EQ(1, program->statements_.size());
 
@@ -611,7 +611,7 @@ TEST_F(ParserTest, TestCallExpression)
     std::cout << "CALL EXPRESSION! -- " << input << std::endl;
     std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(input);
     std::unique_ptr<Parser> parsley = std::make_unique<Parser>(std::move(lex));
-    std::unique_ptr<Program> program = parsley->ParseProgram();
+    std::shared_ptr<Program> program = parsley->ParseProgram();
     EXPECT_FALSE(parsley->CheckErrors());
     EXPECT_EQ(1, program->statements_.size());
     if (program->statements_.size() != 1)
@@ -660,7 +660,7 @@ TEST_F(ParserTest, TestCallExpressionParsing)
         std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(tt.input);
         std::unique_ptr<Parser> parsley =
             std::make_unique<Parser>(std::move(lex));
-        std::unique_ptr<Program> program = parsley->ParseProgram();
+        std::shared_ptr<Program> program = parsley->ParseProgram();
         EXPECT_FALSE(parsley->CheckErrors());
         ASSERT_EQ(1, program->statements_.size());
 

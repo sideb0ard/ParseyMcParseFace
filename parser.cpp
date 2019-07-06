@@ -13,21 +13,15 @@ Parser::Parser(std::unique_ptr<Lexer> lexer) : lexer_{std::move(lexer)}
     NextToken();
 }
 
-std::unique_ptr<Program> Parser::ParseProgram()
+std::shared_ptr<Program> Parser::ParseProgram()
 {
-    std::cout << "ParseProgram begins..\n";
-
-    std::unique_ptr<Program> program = std::make_unique<Program>();
+    std::shared_ptr<Program> program = std::make_shared<Program>();
 
     while (cur_token_.type_ != EOFF)
     {
         std::shared_ptr<Statement> stmt = ParseStatement();
         if (stmt)
-        {
-            std::cout << " Gots a " << typeid(stmt).name() << " "
-                      << stmt->TokenLiteral() << std::endl;
             program->statements_.push_back(stmt);
-        }
         NextToken();
     }
     return program;
@@ -36,23 +30,15 @@ std::unique_ptr<Program> Parser::ParseProgram()
 std::shared_ptr<Statement> Parser::ParseStatement()
 {
     if (cur_token_.type_.compare(LET) == 0)
-    {
-        std::cout << "Got a LET statement\n";
         return ParseLetStatement();
-    }
     else if (cur_token_.type_.compare(RETURN) == 0)
-    {
-        std::cout << "Got a RETURN statement\n";
         return ParseReturnStatement();
-    }
     else
         return ParseExpressionStatement();
 }
 
 std::shared_ptr<LetStatement> Parser::ParseLetStatement()
 {
-
-    std::cout << "Parsing LET Statement\n";
 
     std::shared_ptr<LetStatement> stmt =
         std::make_shared<LetStatement>(cur_token_);
@@ -78,15 +64,11 @@ std::shared_ptr<LetStatement> Parser::ParseLetStatement()
     if (PeekTokenIs(SEMICOLON))
         NextToken();
 
-    std::cout << "Returning a " << typeid(stmt).name() << std::endl;
-    std::cout << stmt->TokenLiteral() << std::endl;
     return stmt;
 }
 
 std::shared_ptr<ReturnStatement> Parser::ParseReturnStatement()
 {
-
-    std::cout << "Parsing RETURN Statement\n";
 
     std::shared_ptr<ReturnStatement> stmt =
         std::make_shared<ReturnStatement>(cur_token_);
@@ -98,14 +80,11 @@ std::shared_ptr<ReturnStatement> Parser::ParseReturnStatement()
     if (PeekTokenIs(SEMICOLON))
         NextToken();
 
-    std::cout << "Returning a " << typeid(stmt).name() << std::endl;
-    std::cout << stmt->TokenLiteral() << std::endl;
     return stmt;
 }
 
 std::shared_ptr<ExpressionStatement> Parser::ParseExpressionStatement()
 {
-    std::cout << "  Parsing EXPRESSION Statement\n";
     std::shared_ptr<ExpressionStatement> stmt =
         std::make_shared<ExpressionStatement>(cur_token_);
     stmt->expression_ = ParseExpression(Precedence::LOWEST);
@@ -130,8 +109,6 @@ bool Parser::CheckErrors()
 
 bool Parser::ExpectPeek(TokenType t)
 {
-    std::cout << "  ExpectPeek - looking at " << peek_token_.type_
-              << " and expect it to be " << t << std::endl;
     if (PeekTokenIs(t))
     {
         NextToken();
@@ -187,25 +164,15 @@ static bool IsInfixOperator(TokenType type)
 
 std::shared_ptr<Expression> Parser::ParseExpression(Precedence p)
 {
-    std::cout << "      ParseExpression - cur token:" << cur_token_.type_
-              << " val: " << cur_token_.literal_ << "!\n";
     std::shared_ptr<Expression> left_expr = ParseForPrefixExpression();
 
     if (!left_expr)
         return nullptr;
 
-    std::cout << "PeekTOken is " << peek_token_.type_
-              << " Precedecne is:" << static_cast<int>(p)
-              << " and PeepPrecedence is " << static_cast<int>(PeekPrecedence())
-              << std::endl;
     while (!PeekTokenIs(SEMICOLON) && p < PeekPrecedence())
     {
-        std::cout << "WHILEin...' - cur_token.type:" << cur_token_.type_
-                  << " \n";
         if (IsInfixOperator(peek_token_.type_))
         {
-            std::cout << "     " << peek_token_.literal_
-                      << " ParseExpression is INFIX!\n";
             NextToken();
             if (cur_token_.type_ == LPAREN)
                 left_expr = ParseCallExpression(left_expr);
@@ -247,20 +214,16 @@ std::shared_ptr<Expression> Parser::ParseForPrefixExpression()
 
 std::shared_ptr<Expression> Parser::ParseIdentifier()
 {
-    std::cout << "          ParseIdentifier!\n";
     return std::make_shared<Identifier>(cur_token_, cur_token_.literal_);
 }
 
 std::shared_ptr<Expression> Parser::ParseBoolean()
 {
-    std::cout << "          ParseIdentifier!\n";
     return std::make_shared<BooleanExpression>(cur_token_, CurTokenIs(TRUE));
 }
 
 std::shared_ptr<Expression> Parser::ParseIntegerLiteral()
 {
-    std::cout << "          ParseIntegerLiteral! " << cur_token_.literal_
-              << "\n";
     auto literal = std::make_shared<IntegerLiteral>(cur_token_);
     int64_t val = std::stoll(cur_token_.literal_, nullptr, 10);
     literal->value_ = val;
@@ -269,7 +232,6 @@ std::shared_ptr<Expression> Parser::ParseIntegerLiteral()
 
 std::shared_ptr<Expression> Parser::ParseIfExpression()
 {
-    std::cout << "          ParseIfExpression!\n";
     auto expression = std::make_shared<IfExpression>(cur_token_);
 
     if (!ExpectPeek(LPAREN))
@@ -288,7 +250,6 @@ std::shared_ptr<Expression> Parser::ParseIfExpression()
 
     if (PeekTokenIs(ELSE))
     {
-        std::cout << "          ELSE!\n";
         NextToken();
 
         if (!ExpectPeek(LBRACE))
@@ -302,7 +263,6 @@ std::shared_ptr<Expression> Parser::ParseIfExpression()
 
 std::shared_ptr<Expression> Parser::ParseFunctionLiteral()
 {
-    std::cout << "          ParsePrefixExpression!\n";
     auto lit = std::make_shared<FunctionLiteral>(cur_token_);
 
     if (!ExpectPeek(LPAREN))
@@ -320,7 +280,6 @@ std::shared_ptr<Expression> Parser::ParseFunctionLiteral()
 
 std::shared_ptr<Expression> Parser::ParsePrefixExpression()
 {
-    std::cout << "          ParsePrefixExpression!\n";
     auto expression =
         std::make_shared<PrefixExpression>(cur_token_, cur_token_.literal_);
 
@@ -334,7 +293,6 @@ std::shared_ptr<Expression> Parser::ParsePrefixExpression()
 std::shared_ptr<Expression>
 Parser::ParseInfixExpression(std::shared_ptr<Expression> left)
 {
-    std::cout << "          ParseInfixExpression!\n";
     auto expression = std::make_shared<InfixExpression>(
         cur_token_, cur_token_.literal_, left);
 
@@ -358,13 +316,8 @@ Precedence Parser::PeekPrecedence() const
 {
     auto it = precedences.find(peek_token_.type_);
     if (it != precedences.end())
-    {
-        std::cout << "found precedence! for " << peek_token_.type_ << " ("
-                  << static_cast<int>(it->second) << ")\n";
         return it->second;
-    }
-    std::cout << "DIDNAE find precedence! for " << peek_token_.type_
-              << std::endl;
+
     return Precedence::LOWEST;
 }
 
@@ -372,9 +325,7 @@ Precedence Parser::CurPrecedence() const
 {
     auto it = precedences.find(cur_token_.type_);
     if (it != precedences.end())
-    {
         return it->second;
-    }
     return Precedence::LOWEST;
 }
 
@@ -427,7 +378,6 @@ std::vector<std::shared_ptr<Identifier>> Parser::ParseFunctionParameters()
 std::shared_ptr<Expression>
 Parser::ParseCallExpression(std::shared_ptr<Expression> funct)
 {
-    std::cout << "PARSE CALL EXPRESSSSSION\n";
     std::shared_ptr<CallExpression> expr =
         std::make_shared<CallExpression>(cur_token_, funct);
     expr->arguments_ = ParseCallArguments();

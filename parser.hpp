@@ -40,7 +40,7 @@ class Parser
   public:
     Parser(std::unique_ptr<Lexer> lexer);
 
-    std::unique_ptr<Program> ParseProgram();
+    std::shared_ptr<Program> ParseProgram();
     bool CheckErrors();
 
   private:

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iostream>
 #include <string>
 #include <vector>
 
@@ -63,10 +62,7 @@ class BooleanExpression : public Expression
   public:
     BooleanExpression() {}
     BooleanExpression(Token token) : Expression{token} {}
-    BooleanExpression(Token token, bool val) : Expression{token}, value_{val}
-    {
-        std::cout << "New BOOL! " << val << std::endl;
-    }
+    BooleanExpression(Token token, bool val) : Expression{token}, value_{val} {}
     std::string String() const override;
 
   public:
@@ -205,7 +201,7 @@ class BlockStatement : public Statement
 class Program : public Node
 {
   public:
-    Program() { std::cout << " Constructing Program\n"; }
+    Program() = default;
     std::string TokenLiteral() const override;
     std::string String() const override;
 

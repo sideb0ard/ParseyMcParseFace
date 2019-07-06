@@ -34,10 +34,7 @@ EvalStatements(std::vector<std::shared_ptr<Statement>> &stmts)
 {
     std::shared_ptr<Object> result;
     for (auto &s : stmts)
-    {
-        std::cout << "Evaluating: " << s->String() << std::endl;
         result = Eval(s);
-    }
 
     return result;
 }
