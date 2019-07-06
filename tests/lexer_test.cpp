@@ -2,8 +2,8 @@
 
 #include "gtest/gtest.h"
 
-#include "lexer.hpp"
-#include "token.hpp"
+#include "../lexer.hpp"
+#include "../token.hpp"
 
 using namespace lexer;
 using namespace token;
@@ -60,7 +60,7 @@ if (5 < 10) {
         {LBRACE, "{"},     {RETURN, "return"}, {FALSE, "false"},
         {SEMICOLON, ";"},  {RBRACE, "}"},      {INT, "10"},
         {EQ, "=="},        {INT, "10"},        {SEMICOLON, ";"},
-        {INT, "10"},       {NE, "!="},         {INT, "9"},
+        {INT, "10"},       {NOT_EQ, "!="},     {INT, "9"},
         {SEMICOLON, ";"}};
 
     LexerTest()
@@ -75,15 +75,9 @@ TEST_F(LexerTest, TestNextToken)
     for (auto tt : testTokens)
     {
         Token tok = lex->NextToken();
-        EXPECT_EQ(tok.type, tt.first);
-        EXPECT_EQ(tok.literal, tt.second);
+        EXPECT_EQ(tok.type_, tt.first);
+        EXPECT_EQ(tok.literal_, tt.second);
     }
 }
 
 } // namespace
-
-int main(int argc, char **argv)
-{
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}

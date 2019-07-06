@@ -5,9 +5,9 @@
 
 #include "gtest/gtest.h"
 
-#include "lexer.hpp"
-#include "parser.hpp"
-#include "token.hpp"
+#include "../lexer.hpp"
+#include "../parser.hpp"
+#include "../token.hpp"
 
 using namespace ast;
 using namespace lexer;
@@ -692,9 +692,3 @@ TEST_F(ParserTest, TestCallExpressionParsing)
 }
 
 } // namespace
-
-int main(int argc, char **argv)
-{
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}

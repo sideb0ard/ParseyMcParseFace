@@ -12,12 +12,14 @@ CXXFLAGS += -g -Wall -Wextra -pthread -std=c++17
 # Google Test libraries
 GTEST_LIBS = libgtest.a libgtest_main.a
 
-DEPS = parsey.hpp lexer.hpp token.hpp
+DEPS = $(wildcard *.hpp)
 MAIN = parsey.cpp
 TARGET = slang
-OBJ = lexer.cpp token.cpp ast.cpp parser.cpp
-LEXER_TESTS = lexer_test.cpp
-PARSER_TESTS = parser_test.cpp
+TEST_TARGET = slang_test
+OBJ = $(filter-out parsey.cpp, $(wildcard *.cpp))
+LEXER_TESTS = tests/lexer_test.cpp
+PARSER_TESTS = tests/parser_test.cpp
+EVAL_TESTS = tests/evaluator_test.cpp
 INC=-I${HOME}/Code/range-v3/include/
 
 CTAGS:
@@ -39,12 +41,9 @@ $(TARGET): $(MAIN) $(OBJ)
 	$(CTAGS)
 	$(CC) $(CPPFLAGS) $(INC) $(CXXFLAGS) $^ -o $@
 
-lexer_test: $(GTEST_LIBS) $(LEXER_TESTS) $(OBJ)
-	$(CTAGS)
-	$(CC) $(CPPFLAGS) $(INC) $(CXXFLAGS) -L$(GTEST_LIB_DIR) -lgtest -lpthread $^ -o $@
 
-
-parser_test: $(GTEST_LIBS) $(PARSER_TESTS) $(OBJ)
+# $(TEST_TARGET): $(PARSER_TESTS) $(EVAL_TESTS) $(LEXER_TESTS) $(GTEST_LIBS) $(OBJ)
+$(TEST_TARGET): $(PARSER_TESTS) $(LEXER_TESTS) $(EVAL_TESTS) $(GTEST_LIBS) $(OBJ)
 	$(CTAGS)
 	$(CC) $(CPPFLAGS) $(INC) $(CXXFLAGS) -L$(GTEST_LIB_DIR) -lgtest -lpthread $^ -o $@
 
