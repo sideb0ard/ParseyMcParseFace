@@ -33,6 +33,7 @@ class Integer : public Object
 class Boolean : public Object
 {
   public:
+    Boolean(bool val) : value_{val} {};
     ObjectType Type() override;
     std::string Inspect() override;
 

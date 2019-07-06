@@ -30,7 +30,6 @@ bool TestIntegerObject(std::shared_ptr<Object> obj, int64_t expected)
     std::shared_ptr<Integer> io = std::dynamic_pointer_cast<Integer>(obj);
     if (!io)
         return false;
-    std::cout << "CAST WAS All good!\n";
 
     if (io->value_ != expected)
     {
@@ -38,7 +37,23 @@ bool TestIntegerObject(std::shared_ptr<Object> obj, int64_t expected)
                   << io->value_ << " // expected:" << expected << std::endl;
         return false;
     }
+    return true;
+}
 
+bool TestBooleanObject(std::shared_ptr<Object> obj, bool expected)
+{
+    std::shared_ptr<Boolean> bo = std::dynamic_pointer_cast<Boolean>(obj);
+    if (!bo)
+        return false;
+
+    if (bo->value_ != expected)
+    {
+        std::cerr << "TEST BOOLEAN OBJECT - val not correct - actual:"
+                  << (bo->value_ ? "true" : "false")
+                  << " // expected:" << (expected ? "true" : "false")
+                  << std::endl;
+        return false;
+    }
     return true;
 }
 
@@ -55,7 +70,7 @@ std::shared_ptr<Object> TestEval(std::string input)
     return Eval(std::move(program));
 }
 
-TEST_F(EvaluatorTest, TestEvalIntegerExpression)
+TEST_F(EvaluatorTest, TestIntegerExpression)
 {
     struct TestCase
     {
@@ -68,6 +83,40 @@ TEST_F(EvaluatorTest, TestEvalIntegerExpression)
         std::cout << "\nTesting! input: " << tt.input << std::endl;
         auto evaluated = TestEval(tt.input);
         EXPECT_TRUE(TestIntegerObject(evaluated, tt.expected));
+    }
+}
+
+TEST_F(EvaluatorTest, TestBooleanExpression)
+{
+    struct TestCase
+    {
+        std::string input;
+        bool expected;
+    };
+    std::vector<TestCase> tests{{"true", true}, {"false", false}};
+    for (auto tt : tests)
+    {
+        std::cout << "\nTesting! input: " << tt.input << std::endl;
+        auto evaluated = TestEval(tt.input);
+        EXPECT_TRUE(TestBooleanObject(evaluated, tt.expected));
+    }
+}
+
+TEST_F(EvaluatorTest, TestBangOperator)
+{
+    struct TestCase
+    {
+        std::string input;
+        bool expected;
+    };
+    std::vector<TestCase> tests{{"!true", false},   {"!false", true},
+                                {"!5", false},      {"!!true", true},
+                                {"!!false", false}, {"!!5", true}};
+    for (auto tt : tests)
+    {
+        std::cout << "\nTesting! input: " << tt.input << std::endl;
+        auto evaluated = TestEval(tt.input);
+        EXPECT_TRUE(TestBooleanObject(evaluated, tt.expected));
     }
 }
 
