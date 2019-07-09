@@ -46,6 +46,9 @@ bool TestBooleanObject(std::shared_ptr<Object> obj, bool expected)
     if (!bo)
         return false;
 
+    std::cout << "Testing Boolean! - object val:"
+              << (bo->value_ ? "true" : "false")
+              << " // Expected:" << (expected ? "true" : "false") << std::endl;
     if (bo->value_ != expected)
     {
         std::cerr << "TEST BOOLEAN OBJECT - val not correct - actual:"
@@ -77,7 +80,7 @@ TEST_F(EvaluatorTest, TestIntegerExpression)
         std::string input;
         int64_t expected;
     };
-    std::vector<TestCase> tests{{"5", 5}, {"10", 10}};
+    std::vector<TestCase> tests{{"5", 5}, {"10", 10}, {"-5", -5}, {"-10", -10}};
     for (auto tt : tests)
     {
         std::cout << "\nTesting! input: " << tt.input << std::endl;

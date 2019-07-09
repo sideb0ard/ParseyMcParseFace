@@ -47,6 +47,8 @@ std::shared_ptr<Object> EvalPrefixExpression(std::string op,
 {
     if (op.compare("!") == 0)
         return EvalBangOperatorExpression(right);
+    else if (op.compare("-") == 0)
+        return EvalMinusPrefixOperatorExpression(right);
 
     return nullptr;
 }
@@ -67,6 +69,16 @@ EvalBangOperatorExpression(std::shared_ptr<Object> right)
         return std::make_shared<Boolean>(true);
 
     return std::make_shared<Boolean>(false);
+}
+
+std::shared_ptr<Object>
+EvalMinusPrefixOperatorExpression(std::shared_ptr<Object> right)
+{
+    std::shared_ptr<Integer> i = std::dynamic_pointer_cast<Integer>(right);
+    if (!i)
+        return nullptr;
+
+    return std::make_shared<Integer>(-i->value_);
 }
 
 std::shared_ptr<Object>

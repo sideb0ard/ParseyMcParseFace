@@ -15,4 +15,6 @@ std::shared_ptr<object::Object>
 EvalPrefixExpression(std::string op, std::shared_ptr<object::Object> obj);
 std::shared_ptr<object::Object>
 EvalBangOperatorExpression(std::shared_ptr<object::Object> right);
+std::shared_ptr<object::Object>
+EvalMinusPrefixOperatorExpression(std::shared_ptr<object::Object> right);
 } // namespace evaluator
