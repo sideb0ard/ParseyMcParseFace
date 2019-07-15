@@ -8,6 +8,9 @@ namespace evaluator
 using namespace ast;
 using namespace object;
 
+const auto TRUE = std::make_shared<object::Boolean>(true);
+const auto FALSE = std::make_shared<object::Boolean>(false);
+
 std::shared_ptr<Object> Eval(std::shared_ptr<Node> node)
 {
     std::shared_ptr<Program> prog_node =
@@ -29,7 +32,7 @@ std::shared_ptr<Object> Eval(std::shared_ptr<Node> node)
     std::shared_ptr<BooleanExpression> be =
         std::dynamic_pointer_cast<BooleanExpression>(node);
     if (be)
-        return std::make_shared<Boolean>(be->value_);
+        return NativeBoolToBooleanObject(be->value_);
 
     std::shared_ptr<PrefixExpression> pe =
         std::dynamic_pointer_cast<PrefixExpression>(node);
@@ -37,6 +40,15 @@ std::shared_ptr<Object> Eval(std::shared_ptr<Node> node)
     {
         auto right = Eval(pe->right_);
         return EvalPrefixExpression(pe->operator_, right);
+    }
+
+    std::shared_ptr<InfixExpression> ie =
+        std::dynamic_pointer_cast<InfixExpression>(node);
+    if (ie)
+    {
+        auto left = Eval(ie->left_);
+        auto right = Eval(ie->right_);
+        return EvalInfixExpression(ie->operator_, left, right);
     }
 
     return nullptr;
@@ -49,6 +61,53 @@ std::shared_ptr<Object> EvalPrefixExpression(std::string op,
         return EvalBangOperatorExpression(right);
     else if (op.compare("-") == 0)
         return EvalMinusPrefixOperatorExpression(right);
+
+    return nullptr;
+}
+
+std::shared_ptr<Object> EvalInfixExpression(std::string op,
+                                            std::shared_ptr<Object> left,
+                                            std::shared_ptr<Object> right)
+{
+    std::shared_ptr<Integer> left_val =
+        std::dynamic_pointer_cast<Integer>(left);
+
+    std::shared_ptr<Integer> right_val =
+        std::dynamic_pointer_cast<Integer>(right);
+
+    if (left_val && right_val)
+    {
+        return EvalIntegerInfixExpression(op, left_val, right_val);
+    }
+    else if (op.compare("==") == 0)
+        return NativeBoolToBooleanObject(left == right);
+    else if (op.compare("!=") == 0)
+        return NativeBoolToBooleanObject(left != right);
+
+    return nullptr;
+}
+
+std::shared_ptr<Object>
+EvalIntegerInfixExpression(std::string op, std::shared_ptr<Integer> left,
+                           std::shared_ptr<Integer> right)
+{
+
+    if (op.compare("+") == 0)
+        return std::make_shared<Integer>(left->value_ + right->value_);
+    else if (op.compare("-") == 0)
+        return std::make_shared<Integer>(left->value_ - right->value_);
+    else if (op.compare("*") == 0)
+        return std::make_shared<Integer>(left->value_ * right->value_);
+    else if (op.compare("/") == 0)
+        return std::make_shared<Integer>(left->value_ / right->value_);
+    else if (op.compare("<") == 0)
+        return NativeBoolToBooleanObject(left->value_ < right->value_);
+    else if (op.compare(">") == 0)
+        return NativeBoolToBooleanObject(left->value_ > right->value_);
+    else if (op.compare("==") == 0)
+        return NativeBoolToBooleanObject(left->value_ == right->value_);
+    else if (op.compare("!=") == 0)
+        return NativeBoolToBooleanObject(left->value_ != right->value_);
 
     return nullptr;
 }
@@ -89,6 +148,13 @@ EvalStatements(std::vector<std::shared_ptr<Statement>> &stmts)
         result = Eval(s);
 
     return result;
+}
+
+std::shared_ptr<object::Boolean> NativeBoolToBooleanObject(bool input)
+{
+    if (input)
+        return TRUE;
+    return FALSE;
 }
 
 } // namespace evaluator
