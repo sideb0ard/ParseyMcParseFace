@@ -1,13 +1,20 @@
 #pragma once
 
+#include <iostream>
 #include <string>
 
 namespace object
 {
 
+const std::string NULL_OBJ = "NULL";
+const std::string ERROR_OBJ = "ERROR";
+
 const std::string INTEGER_OBJ = "INTEGER";
 const std::string BOOLEAN_OBJ = "BOOLEAN";
-const std::string NULL_OBJ = "NULL";
+
+const std::string RETURN_VALUE_OBJ = "RETURN_VALUE";
+
+const std::string FUNCTION_OBJ = "FUNCTION";
 
 using ObjectType = std::string;
 
@@ -41,9 +48,21 @@ class Boolean : public Object
     bool value_;
 };
 
+class ReturnValue : public Object
+{
+  public:
+    ReturnValue(std::shared_ptr<Object> val) : value_{val} {};
+    ObjectType Type() override;
+    std::string Inspect() override;
+
+  public:
+    std::shared_ptr<Object> value_;
+};
+
 class Null : public Object
 {
   public:
+    Null() { std::cout << "Creating _THE_ NULLL\n"; }
     ObjectType Type() override;
     std::string Inspect() override;
 };

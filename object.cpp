@@ -25,4 +25,6 @@ ObjectType Boolean::Type() { return BOOLEAN_OBJ; }
 std::string Null::Inspect() { return "null"; }
 ObjectType Null::Type() { return NULL_OBJ; }
 
+std::string ReturnValue::Inspect() { return value_->Inspect(); }
+ObjectType ReturnValue::Type() { return RETURN_VALUE_OBJ; }
 } // namespace object

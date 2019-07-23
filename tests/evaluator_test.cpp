@@ -29,7 +29,10 @@ bool TestIntegerObject(std::shared_ptr<Object> obj, int64_t expected)
 {
     std::shared_ptr<Integer> io = std::dynamic_pointer_cast<Integer>(obj);
     if (!io)
+    {
+        std::cerr << "NOT AN INTEGER OBJECT\n";
         return false;
+    }
 
     if (io->value_ != expected)
     {
@@ -69,8 +72,7 @@ std::shared_ptr<Object> TestEval(std::string input)
     std::shared_ptr<Program> program = parsley->ParseProgram();
     std::cout << "Program has " << program->statements_.size() << " statements"
               << std::endl;
-    EXPECT_EQ(1, program->statements_.size());
-    return Eval(std::move(program));
+    return Eval(program);
 }
 
 TEST_F(EvaluatorTest, TestIntegerExpression)
@@ -152,6 +154,58 @@ TEST_F(EvaluatorTest, TestBangOperator)
         std::cout << "\nTesting! input: " << tt.input << std::endl;
         auto evaluated = TestEval(tt.input);
         EXPECT_TRUE(TestBooleanObject(evaluated, tt.expected));
+    }
+}
+
+TEST_F(EvaluatorTest, TestIfElseExpression)
+{
+    struct TestCaseInt
+    {
+        std::string input;
+        int64_t expected;
+    };
+    std::vector<TestCaseInt> tests{{"if (true) { 10 }", 10},
+                                   {"if (1) { 10 }", 10},
+                                   {"if (1 < 2) { 10 }", 10},
+                                   {"if (1 > 2) { 10 } else { 20 }", 20},
+                                   {"if (1 < 2) { 10 } else { 20 }", 10}};
+    for (auto tt : tests)
+    {
+        std::cout << "\nTesting! input: " << tt.input << std::endl;
+        auto evaluated = TestEval(tt.input);
+
+        EXPECT_TRUE(TestIntegerObject(evaluated, tt.expected));
+    }
+
+    ////////////////////
+
+    std::vector<std::string> nullTests{"if (false) { 10 }",
+                                       "if (1 > 2) { 10 }"};
+    for (auto tt : nullTests)
+    {
+        std::cout << "\nTesting! input: " << tt << std::endl;
+        std::shared_ptr<object::Object> evaluated = TestEval(tt);
+        std::shared_ptr<Null> no = std::dynamic_pointer_cast<Null>(evaluated);
+        EXPECT_EQ(no->Type(), NULL_OBJ);
+    }
+}
+
+TEST_F(EvaluatorTest, TestReturnStatements)
+{
+    struct TestCase
+    {
+        std::string input;
+        int64_t expected;
+    };
+    std::vector<TestCase> tests{{"return 10;", 10},
+                                {"return 10; 9;", 10},
+                                {"return 2 * 5; 9;", 10},
+                                {"9; return 2 * 5; 9", 10}};
+    for (auto tt : tests)
+    {
+        std::cout << "\nTesting! input: " << tt.input << std::endl;
+        auto evaluated = TestEval(tt.input);
+        EXPECT_TRUE(TestIntegerObject(evaluated, tt.expected));
     }
 }
 
