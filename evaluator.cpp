@@ -38,7 +38,7 @@ std::shared_ptr<Object> Eval(std::shared_ptr<Node> node)
         std::dynamic_pointer_cast<Program>(node);
     if (prog_node)
     {
-        return EvalStatements(prog_node->statements_);
+        return EvalProgram(prog_node->statements_);
     }
 
     std::shared_ptr<BlockStatement> block_statement_node =
@@ -205,7 +205,7 @@ EvalMinusPrefixOperatorExpression(std::shared_ptr<Object> right)
 }
 
 std::shared_ptr<Object>
-EvalStatements(std::vector<std::shared_ptr<Statement>> &stmts)
+EvalProgram(std::vector<std::shared_ptr<Statement>> &stmts)
 {
     std::shared_ptr<Object> result;
     for (auto &s : stmts)

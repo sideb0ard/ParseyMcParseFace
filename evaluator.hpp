@@ -11,7 +11,7 @@ namespace evaluator
 std::shared_ptr<object::Object> Eval(std::shared_ptr<ast::Node> node);
 
 std::shared_ptr<object::Object>
-EvalStatements(std::vector<std::shared_ptr<ast::Statement>> &stmts);
+EvalProgram(std::vector<std::shared_ptr<ast::Statement>> &stmts);
 
 std::shared_ptr<object::Object>
 EvalBlockStatement(std::shared_ptr<ast::BlockStatement> block);

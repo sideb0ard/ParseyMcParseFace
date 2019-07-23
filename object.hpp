@@ -62,7 +62,16 @@ class ReturnValue : public Object
 class Null : public Object
 {
   public:
-    Null() { std::cout << "Creating _THE_ NULLL\n"; }
+    ObjectType Type() override;
+    std::string Inspect() override;
+};
+
+class Error : public Object
+{
+  public:
+    std::string message_;
+
+  public:
     ObjectType Type() override;
     std::string Inspect() override;
 };

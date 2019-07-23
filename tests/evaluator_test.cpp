@@ -197,10 +197,12 @@ TEST_F(EvaluatorTest, TestReturnStatements)
         std::string input;
         int64_t expected;
     };
-    std::vector<TestCase> tests{{"return 10;", 10},
-                                {"return 10; 9;", 10},
-                                {"return 2 * 5; 9;", 10},
-                                {"9; return 2 * 5; 9", 10}};
+    std::vector<TestCase> tests{
+        {"return 10;", 10},
+        {"return 10; 9;", 10},
+        {"return 2 * 5; 9;", 10},
+        {"9; return 2 * 5; 9", 10},
+        {"if (10 > 1) { if (10 > 1) { return 10;} } return 1;}", 10}};
     for (auto tt : tests)
     {
         std::cout << "\nTesting! input: " << tt.input << std::endl;
