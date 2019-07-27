@@ -8,14 +8,11 @@ namespace
 {
 bool IsTruthy(std::shared_ptr<object::Object> obj)
 {
-    if (obj->Type() == object::NULL_OBJ)
+    if (obj == evaluator::NULLL)
         return false;
-
-    std::shared_ptr<object::Boolean> b =
-        std::dynamic_pointer_cast<object::Boolean>(obj);
-    if (b && b->value_ == true)
+    else if (obj == evaluator::TRUE)
         return true;
-    else if (b && b->value_ == false)
+    else if (obj == evaluator::FALSE)
         return false;
 
     return true;
@@ -27,10 +24,6 @@ namespace evaluator
 
 using namespace ast;
 using namespace object;
-
-static const auto TRUE = std::make_shared<object::Boolean>(true);
-static const auto FALSE = std::make_shared<object::Boolean>(false);
-static const auto NULLL = std::make_shared<object::Null>();
 
 std::shared_ptr<Object> Eval(std::shared_ptr<Node> node)
 {

@@ -10,7 +10,6 @@ std::string Integer::Inspect()
     val << value_;
     return val.str();
 }
-
 ObjectType Integer::Type() { return INTEGER_OBJ; }
 
 std::string Boolean::Inspect()
@@ -19,7 +18,6 @@ std::string Boolean::Inspect()
     val << (value_ ? "true" : "false");
     return val.str();
 }
-
 ObjectType Boolean::Type() { return BOOLEAN_OBJ; }
 
 std::string Null::Inspect() { return "null"; }

@@ -185,8 +185,7 @@ TEST_F(EvaluatorTest, TestIfElseExpression)
     {
         std::cout << "\nTesting! input: " << tt << std::endl;
         std::shared_ptr<object::Object> evaluated = TestEval(tt);
-        std::shared_ptr<Null> no = std::dynamic_pointer_cast<Null>(evaluated);
-        EXPECT_EQ(no->Type(), NULL_OBJ);
+        EXPECT_EQ(evaluated, evaluator::NULLL);
     }
 }
 
@@ -208,6 +207,42 @@ TEST_F(EvaluatorTest, TestReturnStatements)
         std::cout << "\nTesting! input: " << tt.input << std::endl;
         auto evaluated = TestEval(tt.input);
         EXPECT_TRUE(TestIntegerObject(evaluated, tt.expected));
+    }
+}
+
+TEST_F(EvaluatorTest, TestErrorHandling)
+{
+    struct TestCase
+    {
+        std::string input;
+        std::string expected;
+    };
+    std::vector<TestCase> tests{
+        {"5 + true;", "type mismatch: INTEGER + BOOLEAN"},
+        {"5 + true; 5", "type mismatch: INTEGER + BOOLEAN"},
+        {"-true", "unknown operator: -BOOLEAN"},
+        {"true + false;", "unknown operator: BOOLEAN + BOOLEAN"},
+        {"5; true + false; 5", "unknown operator: BOOLEAN + BOOLEAN"},
+        {"if (10 > 1) { true + false; }",
+         "unknown operator: BOOLEAN + BOOLEAN"},
+        {"if (10 > 1) { if (10 > 1) { true + false; } return 1;}",
+         "unknown operator: BOOLEAN + BOOLEAN"},
+    };
+
+    for (auto tt : tests)
+    {
+        std::cout << "Testing input:" << tt.input << std::endl;
+        auto evaluated = TestEval(tt.input);
+        std::shared_ptr<object::Error> err_obj =
+            std::dynamic_pointer_cast<object::Error>(evaluated);
+        EXPECT_TRUE(err_obj);
+        if (!err_obj)
+        {
+            std::cerr << "No Error object returned. Got "
+                      << typeid(&evaluated).name() << "\n\n";
+            continue;
+        }
+        EXPECT_EQ(err_obj->message_, tt.expected);
     }
 }
 
