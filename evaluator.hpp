@@ -43,4 +43,8 @@ std::shared_ptr<object::Boolean> NativeBoolToBooleanObject(bool input);
 std::shared_ptr<object::Object>
 EvalIfExpression(std::shared_ptr<ast::IfExpression> if_expr);
 
+template <typename... Args>
+std::shared_ptr<object::Error> NewError(const std::string format,
+                                        Args const &... args);
+
 } // namespace evaluator

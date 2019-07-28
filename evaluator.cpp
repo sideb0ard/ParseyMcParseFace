@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 
 #include "ast.hpp"
 #include "evaluator.hpp"
@@ -106,8 +107,8 @@ std::shared_ptr<Object> EvalPrefixExpression(std::string op,
         return EvalBangOperatorExpression(right);
     else if (op.compare("-") == 0)
         return EvalMinusPrefixOperatorExpression(right);
-
-    return NULLL;
+    else
+        return NewError("unknown operator: ", op, right->Type());
 }
 
 std::shared_ptr<object::Object>
@@ -234,6 +235,18 @@ std::shared_ptr<object::Boolean> NativeBoolToBooleanObject(bool input)
     if (input)
         return TRUE;
     return FALSE;
+}
+
+template <typename... Args>
+std::shared_ptr<object::Error> NewError(const std::string msg,
+                                        Args const &... args)
+{
+    std::ostringstream error_msg;
+    error_msg << msg;
+    using List = int[];
+    (void)List{0, ((void)(error_msg << args), 0)...};
+
+    return std::make_shared<object::Error>(error_msg.str());
 }
 
 } // namespace evaluator

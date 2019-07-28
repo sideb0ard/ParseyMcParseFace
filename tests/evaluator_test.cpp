@@ -239,7 +239,7 @@ TEST_F(EvaluatorTest, TestErrorHandling)
         if (!err_obj)
         {
             std::cerr << "No Error object returned. Got "
-                      << typeid(&evaluated).name() << "\n\n";
+                      << typeid(evaluated).name() << "\n\n";
             continue;
         }
         EXPECT_EQ(err_obj->message_, tt.expected);

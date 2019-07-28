@@ -26,6 +26,7 @@ ObjectType Null::Type() { return NULL_OBJ; }
 std::string ReturnValue::Inspect() { return value_->Inspect(); }
 ObjectType ReturnValue::Type() { return RETURN_VALUE_OBJ; }
 
+Error::Error(std::string err_msg) : message_{err_msg} {}
 std::string Error::Inspect() { return "ERROR: " + message_; }
 ObjectType Error::Type() { return ERROR_OBJ; }
 

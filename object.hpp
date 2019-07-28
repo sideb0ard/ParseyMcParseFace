@@ -72,6 +72,8 @@ class Error : public Object
     std::string message_;
 
   public:
+    Error() = default;
+    Error(std::string err_msg);
     ObjectType Type() override;
     std::string Inspect() override;
 };
