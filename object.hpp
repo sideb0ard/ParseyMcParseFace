@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <string>
+#include <unordered_map>
 
 namespace object
 {
@@ -76,6 +77,18 @@ class Error : public Object
     Error(std::string err_msg);
     ObjectType Type() override;
     std::string Inspect() override;
+};
+
+class Environment
+{
+  public:
+    Environment() = default;
+    ~Environment() = default;
+    std::shared_ptr<Object> Get(std::string key);
+    void Set(std::string key, std::shared_ptr<Object> val);
+
+  private:
+    std::unordered_map<std::string, std::shared_ptr<Object>> store_;
 };
 
 } // namespace object

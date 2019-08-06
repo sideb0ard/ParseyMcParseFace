@@ -17,6 +17,8 @@ int main()
 {
     const std::string prompt = ">> ";
 
+    auto env = std::make_shared<object::Environment>();
+
     std::cout << prompt;
     for (std::string input; std::getline(std::cin, input);)
     {
@@ -31,7 +33,7 @@ int main()
             std::make_unique<Parser>(std::move(lex));
         std::shared_ptr<Program> program = parsley->ParseProgram();
 
-        auto evaluated = Eval(program);
+        auto evaluated = Eval(program, env);
         if (evaluated)
             std::cout << evaluated->Inspect() << std::endl;
 

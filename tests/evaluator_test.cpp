@@ -72,7 +72,8 @@ std::shared_ptr<Object> TestEval(std::string input)
     std::shared_ptr<Program> program = parsley->ParseProgram();
     std::cout << "Program has " << program->statements_.size() << " statements"
               << std::endl;
-    return Eval(program);
+    auto env = std::make_shared<Environment>();
+    return Eval(program, env);
 }
 
 TEST_F(EvaluatorTest, TestIntegerExpression)
@@ -227,7 +228,7 @@ TEST_F(EvaluatorTest, TestErrorHandling)
          "unknown operator: BOOLEAN + BOOLEAN"},
         {"if (10 > 1) { if (10 > 1) { true + false; } return 1;}",
          "unknown operator: BOOLEAN + BOOLEAN"},
-    };
+        {"foobar", "identifier not found: foobar"}};
 
     for (auto tt : tests)
     {
@@ -243,6 +244,25 @@ TEST_F(EvaluatorTest, TestErrorHandling)
             continue;
         }
         EXPECT_EQ(err_obj->message_, tt.expected);
+    }
+}
+
+TEST_F(EvaluatorTest, TestLetStatements)
+{
+    struct TestCase
+    {
+        std::string input;
+        int64_t expected;
+    };
+    std::vector<TestCase> tests{
+        {"let a = 5; a;", 5},
+        {"let a = 5 * 5; a;", 25},
+        {"let a = 5; let b = a; b;", 5},
+        {"let a = 5; let b = a; let c = a + b + 5; c;", 15}};
+
+    for (auto tt : tests)
+    {
+        EXPECT_TRUE(TestIntegerObject(TestEval(tt.input), tt.expected));
     }
 }
 

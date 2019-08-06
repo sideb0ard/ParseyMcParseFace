@@ -30,4 +30,18 @@ Error::Error(std::string err_msg) : message_{err_msg} {}
 std::string Error::Inspect() { return "ERROR: " + message_; }
 ObjectType Error::Type() { return ERROR_OBJ; }
 
+std::shared_ptr<Object> Environment::Get(std::string name)
+{
+    auto entry = store_.find(name);
+    if (entry == store_.end())
+        return nullptr;
+    else
+        return entry->second;
+}
+
+void Environment::Set(std::string key, std::shared_ptr<Object> val)
+{
+    store_[key] = val;
+}
+
 } // namespace object

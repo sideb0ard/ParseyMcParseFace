@@ -12,13 +12,16 @@ inline auto const TRUE = std::make_shared<object::Boolean>(true);
 inline auto const FALSE = std::make_shared<object::Boolean>(false);
 inline auto const NULLL = std::make_shared<object::Null>();
 
-std::shared_ptr<object::Object> Eval(std::shared_ptr<ast::Node> node);
+std::shared_ptr<object::Object> Eval(std::shared_ptr<ast::Node> node,
+                                     std::shared_ptr<object::Environment> env);
 
 std::shared_ptr<object::Object>
-EvalProgram(std::vector<std::shared_ptr<ast::Statement>> &stmts);
+EvalProgram(std::vector<std::shared_ptr<ast::Statement>> &stmts,
+            std::shared_ptr<object::Environment> env);
 
 std::shared_ptr<object::Object>
-EvalBlockStatement(std::shared_ptr<ast::BlockStatement> block);
+EvalBlockStatement(std::shared_ptr<ast::BlockStatement> block,
+                   std::shared_ptr<object::Environment> env);
 
 std::shared_ptr<object::Object>
 EvalPrefixExpression(std::string op, std::shared_ptr<object::Object> obj);
@@ -41,10 +44,14 @@ EvalMinusPrefixOperatorExpression(std::shared_ptr<object::Object> right);
 std::shared_ptr<object::Boolean> NativeBoolToBooleanObject(bool input);
 
 std::shared_ptr<object::Object>
-EvalIfExpression(std::shared_ptr<ast::IfExpression> if_expr);
+EvalIfExpression(std::shared_ptr<ast::IfExpression> if_expr,
+                 std::shared_ptr<object::Environment> env);
+
+std::shared_ptr<object::Object>
+EvalIdentifier(std::shared_ptr<ast::Identifier> ident,
+               std::shared_ptr<object::Environment> env);
 
 template <typename... Args>
-std::shared_ptr<object::Error> NewError(const std::string format,
-                                        Args const &... args);
+std::shared_ptr<object::Error> NewError(std::string format, Args... args);
 
 } // namespace evaluator
