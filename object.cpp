@@ -30,6 +30,25 @@ Error::Error(std::string err_msg) : message_{err_msg} {}
 std::string Error::Inspect() { return "ERROR: " + message_; }
 ObjectType Error::Type() { return ERROR_OBJ; }
 
+ObjectType Function::Type() { return FUNCTION_OBJ; }
+std::string Function::Inspect()
+{
+    std::stringstream params;
+    int len = parameters_.size();
+    int i = 0;
+    for (auto &p : parameters_)
+    {
+        params << p->String();
+        if (i < len - 1)
+            params << ", ";
+    }
+    std::stringstream return_val;
+    return_val << "fn(" << params.str() << ") {\n";
+    return_val << body_->String() << "\n)";
+
+    return return_val.str();
+}
+
 std::shared_ptr<Object> Environment::Get(std::string name)
 {
     auto entry = store_.find(name);

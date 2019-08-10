@@ -266,4 +266,21 @@ TEST_F(EvaluatorTest, TestLetStatements)
     }
 }
 
+TEST_F(EvaluatorTest, TestFunctionObject)
+{
+    auto input = "fn(x) { x + 2; };";
+    auto evaluated = TestEval(input);
+    std::shared_ptr<object::Function> fn =
+        std::dynamic_pointer_cast<object::Function>(evaluated);
+    EXPECT_TRUE(fn);
+    if (!fn)
+    {
+        std::cerr << "Object is not a function. Got "
+                  << typeid(evaluated).name() << "\n\n";
+    }
+    EXPECT_EQ(fn->parameters_.size(), 1);
+    EXPECT_EQ(fn->parameters_[0]->String(), "x");
+    EXPECT_EQ(fn->body_->String(), "(x+2)");
+}
+
 } // namespace

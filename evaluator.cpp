@@ -136,6 +136,14 @@ std::shared_ptr<Object> Eval(std::shared_ptr<Node> node,
         return EvalIdentifier(ident, env);
     }
 
+    std::shared_ptr<FunctionLiteral> fn =
+        std::dynamic_pointer_cast<FunctionLiteral>(node);
+    if (fn)
+    {
+        auto params = fn->parameters_;
+        auto body = fn->body_;
+        return std::make_shared<object::Function>(params, env, body);
+    }
     return NULLL;
 }
 

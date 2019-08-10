@@ -4,6 +4,8 @@
 #include <string>
 #include <unordered_map>
 
+#include "ast.hpp"
+
 namespace object
 {
 
@@ -89,6 +91,23 @@ class Environment
 
   private:
     std::unordered_map<std::string, std::shared_ptr<Object>> store_;
+};
+
+class Function : public Object
+{
+  public:
+    Function(std::vector<std::shared_ptr<ast::Identifier>> parameters,
+             std::shared_ptr<Environment> env,
+             std::shared_ptr<ast::BlockStatement> body)
+        : parameters_{parameters}, env_{env}, body_{body} {};
+    ~Function() = default;
+    ObjectType Type() override;
+    std::string Inspect() override;
+
+  public:
+    std::vector<std::shared_ptr<ast::Identifier>> parameters_;
+    std::shared_ptr<Environment> env_;
+    std::shared_ptr<ast::BlockStatement> body_;
 };
 
 } // namespace object
