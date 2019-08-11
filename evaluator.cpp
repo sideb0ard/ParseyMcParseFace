@@ -144,6 +144,27 @@ std::shared_ptr<Object> Eval(std::shared_ptr<Node> node,
         auto body = fn->body_;
         return std::make_shared<object::Function>(params, env, body);
     }
+
+    std::shared_ptr<CallExpression> call_expr =
+        std::dynamic_pointer_cast<CallExpression>(node);
+    if (call_expr)
+    {
+        auto fun = Eval(call_expr->function_, env);
+        if (IsError(fun))
+            return fun;
+
+        std::vector<std::shared_ptr<Object>> args =
+            EvalExpressions(call_expr->arguments_, env);
+        if (args.size() == 1 && IsError(args[0]))
+            return args[0];
+
+        auto func_obj = std::dynamic_pointer_cast<object::Function>(fun);
+        if (func_obj)
+            return ApplyFunction(func_obj, args);
+        else
+            return NewError("Not a function object, mate:%s!", fun->Type());
+    }
+
     return NULLL;
 }
 
@@ -312,6 +333,67 @@ EvalIdentifier(std::shared_ptr<ast::Identifier> ident,
     return val;
 }
 
+std::vector<std::shared_ptr<object::Object>>
+EvalExpressions(std::vector<std::shared_ptr<ast::Expression>> exps,
+                std::shared_ptr<object::Environment> env)
+{
+    std::vector<std::shared_ptr<object::Object>> result;
+
+    for (auto const &e : exps)
+    {
+        auto evaluated = Eval(e, env);
+        if (IsError(evaluated))
+            return std::vector<std::shared_ptr<object::Object>>{evaluated};
+
+        result.push_back(evaluated);
+    }
+
+    return result;
+}
+
+std::shared_ptr<object::Object>
+ApplyFunction(std::shared_ptr<object::Function> fun,
+              std::vector<std::shared_ptr<object::Object>> args)
+{
+    auto extended_env = ExtendFunctionEnv(fun, args);
+    auto evaluated = Eval(fun->body_, extended_env);
+    return UnwrapReturnValue(evaluated);
+}
+
+std::shared_ptr<object::Environment>
+ExtendFunctionEnv(std::shared_ptr<object::Function> fun,
+                  std::vector<std::shared_ptr<object::Object>> &args)
+{
+    std::shared_ptr<object::Environment> new_env =
+        std::make_shared<object::Environment>(fun->env_);
+    if (fun->parameters_.size() != args.size())
+    {
+        std::cerr
+            << "Function Eval - args and params not same size, ya numpty!\n";
+        return new_env;
+    }
+
+    int args_len = args.size();
+    for (int i = 0; i < args_len; i++)
+    {
+        auto param = fun->parameters_[i];
+        new_env->Set(param->value_, args[i]);
+    }
+    return new_env;
+}
+
+std::shared_ptr<object::Object>
+UnwrapReturnValue(std::shared_ptr<object::Object> obj)
+{
+    std::shared_ptr<object::ReturnValue> ret =
+        std::dynamic_pointer_cast<object::ReturnValue>(obj);
+    if (ret)
+        return ret->value_;
+    return obj;
+}
+
+//////////// Error shizzle below
+
 void SSprintF(std::ostringstream &msg, const char *s)
 {
     while (*s)
@@ -321,7 +403,7 @@ void SSprintF(std::ostringstream &msg, const char *s)
             if (*(s + 1) == '%')
                 ++s;
             else
-                msg << "REALLY FUCKED UP MATE!";
+                msg << "ooft, really fucked up mate. disappointing.";
         }
         msg << *s++;
     }

@@ -283,4 +283,36 @@ TEST_F(EvaluatorTest, TestFunctionObject)
     EXPECT_EQ(fn->body_->String(), "(x+2)");
 }
 
+TEST_F(EvaluatorTest, TestFunctionApplication)
+{
+    struct TestCase
+    {
+        std::string input;
+        int64_t expected;
+    };
+    std::vector<TestCase> tests{
+        {"let identity = fn(x) { x; }; identity(5);", 5},
+        {"let identity = fn(x) { return x; }; identity(5);", 5},
+        {"let add = fn(x,y) { x + y; }; add(5,5);", 10},
+        {"let add = fn(x, y) { x + y; }; add(5 + 5, add(5,5));", 20},
+        {"fn(x) {x;}(5)", 5}};
+
+    for (auto tt : tests)
+    {
+        EXPECT_TRUE(TestIntegerObject(TestEval(tt.input), tt.expected));
+    }
+}
+
+TEST_F(EvaluatorTest, TestClosures)
+{
+    auto input = R"(let newAdder = fn(x) {
+  fn(y) { x + y; };
+};
+
+let addTwo = newAdder(2);
+addTwo(2);)";
+
+    TestIntegerObject(TestEval(input), 4);
+}
+
 } // namespace

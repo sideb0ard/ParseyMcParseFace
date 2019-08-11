@@ -85,12 +85,15 @@ class Environment
 {
   public:
     Environment() = default;
+    Environment(std::shared_ptr<Environment> outer_env)
+        : outer_env_{outer_env} {};
     ~Environment() = default;
     std::shared_ptr<Object> Get(std::string key);
-    void Set(std::string key, std::shared_ptr<Object> val);
+    std::shared_ptr<Object> Set(std::string key, std::shared_ptr<Object> val);
 
   private:
     std::unordered_map<std::string, std::shared_ptr<Object>> store_;
+    std::shared_ptr<Environment> outer_env_;
 };
 
 class Function : public Object

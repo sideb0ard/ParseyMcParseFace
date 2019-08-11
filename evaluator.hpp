@@ -51,6 +51,21 @@ std::shared_ptr<object::Object>
 EvalIdentifier(std::shared_ptr<ast::Identifier> ident,
                std::shared_ptr<object::Environment> env);
 
+std::vector<std::shared_ptr<object::Object>>
+EvalExpressions(std::vector<std::shared_ptr<ast::Expression>> exps,
+                std::shared_ptr<object::Environment> env);
+
+std::shared_ptr<object::Object>
+ApplyFunction(std::shared_ptr<object::Function> fun,
+              std::vector<std::shared_ptr<object::Object>> args);
+
+std::shared_ptr<object::Environment>
+ExtendFunctionEnv(std::shared_ptr<object::Function> fun,
+                  std::vector<std::shared_ptr<object::Object>> &args);
+
+std::shared_ptr<object::Object>
+UnwrapReturnValue(std::shared_ptr<object::Object> obj);
+
 template <typename... Args>
 std::shared_ptr<object::Error> NewError(std::string format, Args... args);
 

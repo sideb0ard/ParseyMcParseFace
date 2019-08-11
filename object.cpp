@@ -53,14 +53,19 @@ std::shared_ptr<Object> Environment::Get(std::string name)
 {
     auto entry = store_.find(name);
     if (entry == store_.end())
+    {
+        if (outer_env_)
+            return outer_env_->Get(name);
         return nullptr;
-    else
-        return entry->second;
+    }
+    return entry->second;
 }
 
-void Environment::Set(std::string key, std::shared_ptr<Object> val)
+std::shared_ptr<Object> Environment::Set(std::string key,
+                                         std::shared_ptr<Object> val)
 {
     store_[key] = val;
+    return val;
 }
 
 } // namespace object
