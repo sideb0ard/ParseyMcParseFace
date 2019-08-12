@@ -4,16 +4,14 @@
 
 #include "token.hpp"
 
-using namespace token;
-
 namespace lexer
 {
 
 class Lexer
 {
   public:
-    Lexer(std::string input);
-    Token NextToken();
+    explicit Lexer(std::string input);
+    token::Token NextToken();
 
   private:
     void ReadChar();

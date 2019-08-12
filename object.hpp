@@ -1,23 +1,25 @@
 #pragma once
 
 #include <iostream>
+#include <memory>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "ast.hpp"
 
 namespace object
 {
 
-const std::string NULL_OBJ = "NULL";
-const std::string ERROR_OBJ = "ERROR";
+const char NULL_OBJ[] = "NULL";
+const char ERROR_OBJ[] = "ERROR";
 
-const std::string INTEGER_OBJ = "INTEGER";
-const std::string BOOLEAN_OBJ = "BOOLEAN";
+const char INTEGER_OBJ[] = "INTEGER";
+const char BOOLEAN_OBJ[] = "BOOLEAN";
 
-const std::string RETURN_VALUE_OBJ = "RETURN_VALUE";
+const char RETURN_VALUE_OBJ[] = "RETURN_VALUE";
 
-const std::string FUNCTION_OBJ = "FUNCTION";
+const char FUNCTION_OBJ[] = "FUNCTION";
 
 using ObjectType = std::string;
 
@@ -32,7 +34,7 @@ class Object
 class Integer : public Object
 {
   public:
-    Integer(int64_t val) : value_{val} {};
+    explicit Integer(int64_t val) : value_{val} {};
     ObjectType Type() override;
     std::string Inspect() override;
 
@@ -43,7 +45,7 @@ class Integer : public Object
 class Boolean : public Object
 {
   public:
-    Boolean(bool val) : value_{val} {};
+    explicit Boolean(bool val) : value_{val} {};
     ObjectType Type() override;
     std::string Inspect() override;
 
@@ -54,7 +56,7 @@ class Boolean : public Object
 class ReturnValue : public Object
 {
   public:
-    ReturnValue(std::shared_ptr<Object> val) : value_{val} {};
+    explicit ReturnValue(std::shared_ptr<Object> val) : value_{val} {};
     ObjectType Type() override;
     std::string Inspect() override;
 
@@ -76,7 +78,7 @@ class Error : public Object
 
   public:
     Error() = default;
-    Error(std::string err_msg);
+    explicit Error(std::string err_msg);
     ObjectType Type() override;
     std::string Inspect() override;
 };
@@ -85,7 +87,7 @@ class Environment
 {
   public:
     Environment() = default;
-    Environment(std::shared_ptr<Environment> outer_env)
+    explicit Environment(std::shared_ptr<Environment> outer_env)
         : outer_env_{outer_env} {};
     ~Environment() = default;
     std::shared_ptr<Object> Get(std::string key);

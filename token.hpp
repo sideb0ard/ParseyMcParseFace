@@ -44,7 +44,7 @@ const TokenType NOT_EQ = "!=";
 class Token
 {
   public:
-    Token(){};
+    Token() {}
     Token(TokenType type, std::string literal)
         : type_{type}, literal_{literal} {};
 

@@ -1,7 +1,11 @@
+#include <variant>
+
 #include <iostream>
 #include <memory>
+#include <string>
 #include <type_traits>
-#include <variant>
+#include <utility>
+#include <vector>
 
 #include "gtest/gtest.h"
 
@@ -11,13 +15,6 @@
 #include "../parser.hpp"
 #include "../token.hpp"
 
-using namespace ast;
-using namespace lexer;
-using namespace token;
-using namespace parser;
-using namespace object;
-using namespace evaluator;
-
 namespace
 {
 
@@ -25,9 +22,10 @@ struct EvaluatorTest : public ::testing::Test
 {
 };
 
-bool TestIntegerObject(std::shared_ptr<Object> obj, int64_t expected)
+bool TestIntegerObject(std::shared_ptr<object::Object> obj, int64_t expected)
 {
-    std::shared_ptr<Integer> io = std::dynamic_pointer_cast<Integer>(obj);
+    std::shared_ptr<object::Integer> io =
+        std::dynamic_pointer_cast<object::Integer>(obj);
     if (!io)
     {
         std::cerr << "NOT AN INTEGER OBJECT\n";
@@ -43,9 +41,10 @@ bool TestIntegerObject(std::shared_ptr<Object> obj, int64_t expected)
     return true;
 }
 
-bool TestBooleanObject(std::shared_ptr<Object> obj, bool expected)
+bool TestBooleanObject(std::shared_ptr<object::Object> obj, bool expected)
 {
-    std::shared_ptr<Boolean> bo = std::dynamic_pointer_cast<Boolean>(obj);
+    std::shared_ptr<object::Boolean> bo =
+        std::dynamic_pointer_cast<object::Boolean>(obj);
     if (!bo)
         return false;
 
@@ -63,17 +62,17 @@ bool TestBooleanObject(std::shared_ptr<Object> obj, bool expected)
     return true;
 }
 
-std::shared_ptr<Object> TestEval(std::string input)
+std::shared_ptr<object::Object> TestEval(std::string input)
 {
-    std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(input);
-    std::unique_ptr<Parser> parsley = std::make_unique<Parser>(std::move(lex));
+    auto lex = std::make_unique<lexer::Lexer>(input);
+    auto parsley = std::make_unique<parser::Parser>(std::move(lex));
     EXPECT_FALSE(parsley->CheckErrors());
 
-    std::shared_ptr<Program> program = parsley->ParseProgram();
+    auto program = parsley->ParseProgram();
     std::cout << "Program has " << program->statements_.size() << " statements"
               << std::endl;
-    auto env = std::make_shared<Environment>();
-    return Eval(program, env);
+    auto env = std::make_shared<object::Environment>();
+    return evaluator::Eval(program, env);
 }
 
 TEST_F(EvaluatorTest, TestIntegerExpression)

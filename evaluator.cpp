@@ -1,5 +1,9 @@
 #include <iostream>
+#include <memory>
 #include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "ast.hpp"
 #include "evaluator.hpp"
@@ -33,35 +37,32 @@ bool IsError(std::shared_ptr<object::Object> obj)
 namespace evaluator
 {
 
-using namespace ast;
-using namespace object;
-
-std::shared_ptr<Object> Eval(std::shared_ptr<Node> node,
-                             std::shared_ptr<Environment> env)
+std::shared_ptr<object::Object> Eval(std::shared_ptr<ast::Node> node,
+                                     std::shared_ptr<object::Environment> env)
 {
-    std::shared_ptr<Program> prog_node =
-        std::dynamic_pointer_cast<Program>(node);
+    std::shared_ptr<ast::Program> prog_node =
+        std::dynamic_pointer_cast<ast::Program>(node);
     if (prog_node)
     {
         return EvalProgram(prog_node->statements_, env);
     }
 
-    std::shared_ptr<BlockStatement> block_statement_node =
-        std::dynamic_pointer_cast<BlockStatement>(node);
+    std::shared_ptr<ast::BlockStatement> block_statement_node =
+        std::dynamic_pointer_cast<ast::BlockStatement>(node);
     if (block_statement_node)
     {
         return EvalBlockStatement(block_statement_node, env);
     }
 
-    std::shared_ptr<ExpressionStatement> expr_statement_node =
-        std::dynamic_pointer_cast<ExpressionStatement>(node);
+    std::shared_ptr<ast::ExpressionStatement> expr_statement_node =
+        std::dynamic_pointer_cast<ast::ExpressionStatement>(node);
     if (expr_statement_node)
     {
         return Eval(expr_statement_node->expression_, env);
     }
 
-    std::shared_ptr<ReturnStatement> return_statement_node =
-        std::dynamic_pointer_cast<ReturnStatement>(node);
+    std::shared_ptr<ast::ReturnStatement> return_statement_node =
+        std::dynamic_pointer_cast<ast::ReturnStatement>(node);
     if (return_statement_node)
     {
         auto val = Eval(return_statement_node->return_value_, env);
@@ -71,22 +72,22 @@ std::shared_ptr<Object> Eval(std::shared_ptr<Node> node,
     }
 
     // Expressions
-    std::shared_ptr<IntegerLiteral> il =
-        std::dynamic_pointer_cast<IntegerLiteral>(node);
+    std::shared_ptr<ast::IntegerLiteral> il =
+        std::dynamic_pointer_cast<ast::IntegerLiteral>(node);
     if (il)
     {
-        return std::make_shared<Integer>(il->value_);
+        return std::make_shared<object::Integer>(il->value_);
     }
 
-    std::shared_ptr<BooleanExpression> be =
-        std::dynamic_pointer_cast<BooleanExpression>(node);
+    std::shared_ptr<ast::BooleanExpression> be =
+        std::dynamic_pointer_cast<ast::BooleanExpression>(node);
     if (be)
     {
         return NativeBoolToBooleanObject(be->value_);
     }
 
-    std::shared_ptr<PrefixExpression> pe =
-        std::dynamic_pointer_cast<PrefixExpression>(node);
+    std::shared_ptr<ast::PrefixExpression> pe =
+        std::dynamic_pointer_cast<ast::PrefixExpression>(node);
     if (pe)
     {
         auto right = Eval(pe->right_, env);
@@ -95,8 +96,8 @@ std::shared_ptr<Object> Eval(std::shared_ptr<Node> node,
         return EvalPrefixExpression(pe->operator_, right);
     }
 
-    std::shared_ptr<InfixExpression> ie =
-        std::dynamic_pointer_cast<InfixExpression>(node);
+    std::shared_ptr<ast::InfixExpression> ie =
+        std::dynamic_pointer_cast<ast::InfixExpression>(node);
     if (ie)
     {
         auto left = Eval(ie->left_, env);
@@ -110,15 +111,15 @@ std::shared_ptr<Object> Eval(std::shared_ptr<Node> node,
         return EvalInfixExpression(ie->operator_, left, right);
     }
 
-    std::shared_ptr<IfExpression> if_expr =
-        std::dynamic_pointer_cast<IfExpression>(node);
+    std::shared_ptr<ast::IfExpression> if_expr =
+        std::dynamic_pointer_cast<ast::IfExpression>(node);
     if (if_expr)
     {
         return EvalIfExpression(if_expr, env);
     }
 
-    std::shared_ptr<LetStatement> let_expr =
-        std::dynamic_pointer_cast<LetStatement>(node);
+    std::shared_ptr<ast::LetStatement> let_expr =
+        std::dynamic_pointer_cast<ast::LetStatement>(node);
     if (let_expr)
     {
         auto val = Eval(let_expr->value_, env);
@@ -129,15 +130,15 @@ std::shared_ptr<Object> Eval(std::shared_ptr<Node> node,
         env->Set(let_expr->name_->value_, val);
     }
 
-    std::shared_ptr<Identifier> ident =
-        std::dynamic_pointer_cast<Identifier>(node);
+    std::shared_ptr<ast::Identifier> ident =
+        std::dynamic_pointer_cast<ast::Identifier>(node);
     if (ident)
     {
         return EvalIdentifier(ident, env);
     }
 
-    std::shared_ptr<FunctionLiteral> fn =
-        std::dynamic_pointer_cast<FunctionLiteral>(node);
+    std::shared_ptr<ast::FunctionLiteral> fn =
+        std::dynamic_pointer_cast<ast::FunctionLiteral>(node);
     if (fn)
     {
         auto params = fn->parameters_;
@@ -145,15 +146,15 @@ std::shared_ptr<Object> Eval(std::shared_ptr<Node> node,
         return std::make_shared<object::Function>(params, env, body);
     }
 
-    std::shared_ptr<CallExpression> call_expr =
-        std::dynamic_pointer_cast<CallExpression>(node);
+    std::shared_ptr<ast::CallExpression> call_expr =
+        std::dynamic_pointer_cast<ast::CallExpression>(node);
     if (call_expr)
     {
         auto fun = Eval(call_expr->function_, env);
         if (IsError(fun))
             return fun;
 
-        std::vector<std::shared_ptr<Object>> args =
+        std::vector<std::shared_ptr<object::Object>> args =
             EvalExpressions(call_expr->arguments_, env);
         if (args.size() == 1 && IsError(args[0]))
             return args[0];
@@ -168,8 +169,8 @@ std::shared_ptr<Object> Eval(std::shared_ptr<Node> node,
     return NULLL;
 }
 
-std::shared_ptr<Object> EvalPrefixExpression(std::string op,
-                                             std::shared_ptr<Object> right)
+std::shared_ptr<object::Object>
+EvalPrefixExpression(std::string op, std::shared_ptr<object::Object> right)
 {
     if (op.compare("!") == 0)
         return EvalBangOperatorExpression(right);
@@ -180,8 +181,8 @@ std::shared_ptr<Object> EvalPrefixExpression(std::string op,
 }
 
 std::shared_ptr<object::Object>
-EvalIfExpression(std::shared_ptr<IfExpression> if_expr,
-                 std::shared_ptr<Environment> env)
+EvalIfExpression(std::shared_ptr<ast::IfExpression> if_expr,
+                 std::shared_ptr<object::Environment> env)
 {
     auto condition = Eval(if_expr->condition_, env);
     if (IsError(condition))
@@ -198,9 +199,9 @@ EvalIfExpression(std::shared_ptr<IfExpression> if_expr,
 
     return evaluator::NULLL;
 }
-std::shared_ptr<Object> EvalInfixExpression(std::string op,
-                                            std::shared_ptr<Object> left,
-                                            std::shared_ptr<Object> right)
+std::shared_ptr<object::Object>
+EvalInfixExpression(std::string op, std::shared_ptr<object::Object> left,
+                    std::shared_ptr<object::Object> right)
 {
     if (left->Type() == object::INTEGER_OBJ &&
         right->Type() == object::INTEGER_OBJ)
@@ -224,19 +225,20 @@ std::shared_ptr<Object> EvalInfixExpression(std::string op,
                     right->Type());
 }
 
-std::shared_ptr<Object>
-EvalIntegerInfixExpression(std::string op, std::shared_ptr<Integer> left,
-                           std::shared_ptr<Integer> right)
+std::shared_ptr<object::Object>
+EvalIntegerInfixExpression(std::string op,
+                           std::shared_ptr<object::Integer> left,
+                           std::shared_ptr<object::Integer> right)
 {
 
     if (op.compare("+") == 0)
-        return std::make_shared<Integer>(left->value_ + right->value_);
+        return std::make_shared<object::Integer>(left->value_ + right->value_);
     else if (op.compare("-") == 0)
-        return std::make_shared<Integer>(left->value_ - right->value_);
+        return std::make_shared<object::Integer>(left->value_ - right->value_);
     else if (op.compare("*") == 0)
-        return std::make_shared<Integer>(left->value_ * right->value_);
+        return std::make_shared<object::Integer>(left->value_ * right->value_);
     else if (op.compare("/") == 0)
-        return std::make_shared<Integer>(left->value_ / right->value_);
+        return std::make_shared<object::Integer>(left->value_ / right->value_);
     else if (op.compare("<") == 0)
         return NativeBoolToBooleanObject(left->value_ < right->value_);
     else if (op.compare(">") == 0)
@@ -250,8 +252,8 @@ EvalIntegerInfixExpression(std::string op, std::shared_ptr<Integer> left,
                     right->Type());
 }
 
-std::shared_ptr<Object>
-EvalBangOperatorExpression(std::shared_ptr<Object> right)
+std::shared_ptr<object::Object>
+EvalBangOperatorExpression(std::shared_ptr<object::Object> right)
 {
     if (right == TRUE)
         return FALSE;
@@ -263,34 +265,35 @@ EvalBangOperatorExpression(std::shared_ptr<Object> right)
         return FALSE;
 }
 
-std::shared_ptr<Object>
-EvalMinusPrefixOperatorExpression(std::shared_ptr<Object> right)
+std::shared_ptr<object::Object>
+EvalMinusPrefixOperatorExpression(std::shared_ptr<object::Object> right)
 {
-    std::shared_ptr<Integer> i = std::dynamic_pointer_cast<Integer>(right);
+    std::shared_ptr<object::Integer> i =
+        std::dynamic_pointer_cast<object::Integer>(right);
     if (!i)
     {
         return NewError("unknown operator: -%s", right->Type());
     }
 
-    return std::make_shared<Integer>(-i->value_);
+    return std::make_shared<object::Integer>(-i->value_);
 }
 
-std::shared_ptr<Object>
-EvalProgram(std::vector<std::shared_ptr<Statement>> &stmts,
-            std::shared_ptr<Environment> env)
+std::shared_ptr<object::Object>
+EvalProgram(std::vector<std::shared_ptr<ast::Statement>> const &stmts,
+            std::shared_ptr<object::Environment> env)
 {
-    std::shared_ptr<Object> result;
+    std::shared_ptr<object::Object> result;
     for (auto &s : stmts)
     {
         result = Eval(s, env);
 
-        std::shared_ptr<ReturnValue> r =
-            std::dynamic_pointer_cast<ReturnValue>(result);
+        std::shared_ptr<object::ReturnValue> r =
+            std::dynamic_pointer_cast<object::ReturnValue>(result);
         if (r)
             return r->value_;
 
         std::shared_ptr<object::Error> e =
-            std::dynamic_pointer_cast<Error>(result);
+            std::dynamic_pointer_cast<object::Error>(result);
         if (e)
             return e;
     }
@@ -298,11 +301,11 @@ EvalProgram(std::vector<std::shared_ptr<Statement>> &stmts,
     return result;
 }
 
-std::shared_ptr<Object>
-EvalBlockStatement(std::shared_ptr<BlockStatement> block,
-                   std::shared_ptr<Environment> env)
+std::shared_ptr<object::Object>
+EvalBlockStatement(std::shared_ptr<ast::BlockStatement> block,
+                   std::shared_ptr<object::Environment> env)
 {
-    std::shared_ptr<Object> result;
+    std::shared_ptr<object::Object> result;
     for (auto &s : block->statements_)
     {
         result = Eval(s, env);
@@ -362,7 +365,7 @@ ApplyFunction(std::shared_ptr<object::Function> fun,
 
 std::shared_ptr<object::Environment>
 ExtendFunctionEnv(std::shared_ptr<object::Function> fun,
-                  std::vector<std::shared_ptr<object::Object>> &args)
+                  std::vector<std::shared_ptr<object::Object>> const &args)
 {
     std::shared_ptr<object::Environment> new_env =
         std::make_shared<object::Environment>(fun->env_);

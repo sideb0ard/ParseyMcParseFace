@@ -1,5 +1,8 @@
 #include "object.hpp"
+
+#include <memory>
 #include <sstream>
+#include <string>
 
 namespace object
 {

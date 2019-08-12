@@ -1,6 +1,8 @@
 #pragma once
 
 #include <memory>
+#include <string>
+#include <vector>
 
 #include "ast.hpp"
 #include "object.hpp"
@@ -16,7 +18,7 @@ std::shared_ptr<object::Object> Eval(std::shared_ptr<ast::Node> node,
                                      std::shared_ptr<object::Environment> env);
 
 std::shared_ptr<object::Object>
-EvalProgram(std::vector<std::shared_ptr<ast::Statement>> &stmts,
+EvalProgram(std::vector<std::shared_ptr<ast::Statement>> const &stmts,
             std::shared_ptr<object::Environment> env);
 
 std::shared_ptr<object::Object>
@@ -61,7 +63,7 @@ ApplyFunction(std::shared_ptr<object::Function> fun,
 
 std::shared_ptr<object::Environment>
 ExtendFunctionEnv(std::shared_ptr<object::Function> fun,
-                  std::vector<std::shared_ptr<object::Object>> &args);
+                  std::vector<std::shared_ptr<object::Object>> const &args);
 
 std::shared_ptr<object::Object>
 UnwrapReturnValue(std::shared_ptr<object::Object> obj);

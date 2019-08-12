@@ -35,10 +35,10 @@ char Lexer::PeekChar()
         return input_[next_position_];
 }
 
-Token Lexer::NextToken()
+token::Token Lexer::NextToken()
 {
 
-    Token tok;
+    token::Token tok;
 
     SkipWhiteSpace();
 
@@ -48,95 +48,95 @@ Token Lexer::NextToken()
         if (PeekChar() == '=')
         {
             ReadChar();
-            tok.type_ = EQ;
+            tok.type_ = token::EQ;
             tok.literal_ = "==";
         }
         else
         {
-            tok.type_ = ASSIGN;
+            tok.type_ = token::ASSIGN;
             tok.literal_ = current_char_;
         }
         break;
     case ('+'):
-        tok.type_ = PLUS;
+        tok.type_ = token::PLUS;
         tok.literal_ = current_char_;
         break;
     case ('-'):
-        tok.type_ = MINUS;
+        tok.type_ = token::MINUS;
         tok.literal_ = current_char_;
         break;
     case ('!'):
         if (PeekChar() == '=')
         {
             ReadChar();
-            tok.type_ = NOT_EQ;
+            tok.type_ = token::NOT_EQ;
             tok.literal_ = "!=";
         }
         else
         {
-            tok.type_ = BANG;
+            tok.type_ = token::BANG;
             tok.literal_ = current_char_;
         }
         break;
     case ('*'):
-        tok.type_ = ASTERISK;
+        tok.type_ = token::ASTERISK;
         tok.literal_ = current_char_;
         break;
     case ('/'):
-        tok.type_ = SLASH;
+        tok.type_ = token::SLASH;
         tok.literal_ = current_char_;
         break;
     case ('<'):
-        tok.type_ = LT;
+        tok.type_ = token::LT;
         tok.literal_ = current_char_;
         break;
     case ('>'):
-        tok.type_ = GT;
+        tok.type_ = token::GT;
         tok.literal_ = current_char_;
         break;
     case (','):
-        tok.type_ = COMMA;
+        tok.type_ = token::COMMA;
         tok.literal_ = current_char_;
         break;
     case (';'):
-        tok.type_ = SEMICOLON;
+        tok.type_ = token::SEMICOLON;
         tok.literal_ = current_char_;
         break;
     case ('('):
-        tok.type_ = LPAREN;
+        tok.type_ = token::LPAREN;
         tok.literal_ = current_char_;
         break;
     case (')'):
-        tok.type_ = RPAREN;
+        tok.type_ = token::RPAREN;
         tok.literal_ = current_char_;
         break;
     case ('{'):
-        tok.type_ = LBRACE;
+        tok.type_ = token::LBRACE;
         tok.literal_ = current_char_;
         break;
     case ('}'):
-        tok.type_ = RBRACE;
+        tok.type_ = token::RBRACE;
         tok.literal_ = current_char_;
         break;
     case (0):
-        tok.type_ = EOFF;
+        tok.type_ = token::EOFF;
         break;
     default:
         if (IsValidIdentifier(current_char_))
         {
             tok.literal_ = ReadIdentifier();
-            tok.type_ = LookupIdent(tok.literal_);
+            tok.type_ = token::LookupIdent(tok.literal_);
             return tok;
         }
         else if (IsDigit(current_char_))
         {
-            tok.type_ = INT;
+            tok.type_ = token::INT;
             tok.literal_ = ReadNumber();
             return tok;
         }
         else
         {
-            tok.type_ = ILLEGAL;
+            tok.type_ = token::ILLEGAL;
             tok.literal_ = current_char_;
         }
     }

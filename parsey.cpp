@@ -1,17 +1,14 @@
 #include <cstdlib>
 #include <iostream>
+#include <memory>
 #include <sstream>
 #include <string>
+#include <utility>
 
 #include "evaluator.hpp"
 #include "lexer.hpp"
 #include "parser.hpp"
 #include "token.hpp"
-
-using namespace evaluator;
-using namespace lexer;
-using namespace token;
-using namespace parser;
 
 int main()
 {
@@ -28,12 +25,11 @@ int main()
             continue;
         }
 
-        std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(input);
-        std::unique_ptr<Parser> parsley =
-            std::make_unique<Parser>(std::move(lex));
-        std::shared_ptr<Program> program = parsley->ParseProgram();
+        auto lex = std::make_unique<lexer::Lexer>(input);
+        auto parsley = std::make_unique<parser::Parser>(std::move(lex));
+        auto program = parsley->ParseProgram();
 
-        auto evaluated = Eval(program, env);
+        auto evaluated = evaluator::Eval(program, env);
         if (evaluated)
             std::cout << evaluated->Inspect() << std::endl;
 

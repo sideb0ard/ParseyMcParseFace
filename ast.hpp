@@ -1,11 +1,12 @@
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
 #include "token.hpp"
 
-using namespace token;
+using ::token::Token;
 
 namespace ast
 {
@@ -18,7 +19,7 @@ class Node
 {
   public:
     Node() = default;
-    Node(Token toke) : token_{toke} {}
+    explicit Node(Token toke) : token_{toke} {}
     virtual ~Node() = default;
     virtual std::string TokenLiteral() const { return token_.literal_; }
     virtual std::string String() const = 0;
@@ -33,7 +34,7 @@ class Expression : public Node
 {
   public:
     Expression() {}
-    Expression(Token token) : Node{token} {}
+    explicit Expression(Token token) : Node{token} {}
 };
 
 class Identifier : public Expression
@@ -49,7 +50,7 @@ class IntegerLiteral : public Expression
 {
   public:
     IntegerLiteral() {}
-    IntegerLiteral(Token token) : Expression{token} {}
+    explicit IntegerLiteral(Token token) : Expression{token} {}
     IntegerLiteral(Token token, int64_t val) : Expression{token}, value_{val} {}
     std::string String() const override;
 
@@ -61,7 +62,7 @@ class BooleanExpression : public Expression
 {
   public:
     BooleanExpression() {}
-    BooleanExpression(Token token) : Expression{token} {}
+    explicit BooleanExpression(Token token) : Expression{token} {}
     BooleanExpression(Token token, bool val) : Expression{token}, value_{val} {}
     std::string String() const override;
 
@@ -73,7 +74,7 @@ class PrefixExpression : public Expression
 {
   public:
     PrefixExpression() {}
-    PrefixExpression(Token token) : Expression{token} {}
+    explicit PrefixExpression(Token token) : Expression{token} {}
     PrefixExpression(Token token, std::string op)
         : Expression{token}, operator_{op}
     {
@@ -89,7 +90,7 @@ class InfixExpression : public Expression
 {
   public:
     InfixExpression() {}
-    InfixExpression(Token token) : Expression{token} {}
+    explicit InfixExpression(Token token) : Expression{token} {}
     InfixExpression(Token token, std::string op,
                     std::shared_ptr<Expression> left)
         : Expression{token}, operator_{op}, left_{left}
@@ -107,7 +108,7 @@ class IfExpression : public Expression
 {
   public:
     IfExpression() {}
-    IfExpression(Token token) : Expression{token} {}
+    explicit IfExpression(Token token) : Expression{token} {}
 
     std::string String() const override;
 
@@ -121,7 +122,7 @@ class FunctionLiteral : public Expression
 {
   public:
     FunctionLiteral() {}
-    FunctionLiteral(Token token) : Expression{token} {}
+    explicit FunctionLiteral(Token token) : Expression{token} {}
 
     std::string String() const override;
 
@@ -152,13 +153,13 @@ class CallExpression : public Expression
 class Statement : public Node
 {
   public:
-    Statement(Token toke) : Node{toke} {};
+    explicit Statement(Token toke) : Node{toke} {};
 };
 
 class LetStatement : public Statement
 {
   public:
-    LetStatement(Token toke) : Statement(toke){};
+    explicit LetStatement(Token toke) : Statement(toke) {}
     std::string String() const override;
 
   public:
@@ -169,7 +170,7 @@ class LetStatement : public Statement
 class ReturnStatement : public Statement
 {
   public:
-    ReturnStatement(Token toke) : Statement(toke){};
+    explicit ReturnStatement(Token toke) : Statement(toke) {}
     std::string String() const override;
 
   public:
@@ -179,7 +180,7 @@ class ReturnStatement : public Statement
 class ExpressionStatement : public Statement
 {
   public:
-    ExpressionStatement(Token toke) : Statement(toke){};
+    explicit ExpressionStatement(Token toke) : Statement(toke) {}
     std::string String() const override;
 
   public:
@@ -189,7 +190,7 @@ class ExpressionStatement : public Statement
 class BlockStatement : public Statement
 {
   public:
-    BlockStatement(Token toke) : Statement(toke){};
+    explicit BlockStatement(Token toke) : Statement(toke) {}
     std::string String() const override;
 
   public:
