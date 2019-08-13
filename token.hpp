@@ -11,6 +11,7 @@ const TokenType EOFF = "EOF";
 
 const TokenType IDENT = "IDENT";
 const TokenType INT = "INT";
+const TokenType STRING = "STRING";
 
 const TokenType ASSIGN = "=";
 const TokenType PLUS = "+";

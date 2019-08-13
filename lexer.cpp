@@ -15,6 +15,18 @@ namespace lexer
 
 Lexer::Lexer(std::string input) : input_{input} { ReadChar(); }
 
+std::string Lexer::ReadString()
+{
+    auto pos = current_position_ + 1;
+    while (true)
+    {
+        ReadChar();
+        if (current_char_ == '"' || current_char_ == 0)
+            break;
+    }
+    return input_.substr(pos, current_position_ - pos);
+}
+
 void Lexer::ReadChar()
 {
     const int len = input_.length();
@@ -117,6 +129,10 @@ token::Token Lexer::NextToken()
     case ('}'):
         tok.type_ = token::RBRACE;
         tok.literal_ = current_char_;
+        break;
+    case ('"'):
+        tok.type_ = token::STRING;
+        tok.literal_ = ReadString();
         break;
     case (0):
         tok.type_ = token::EOFF;
