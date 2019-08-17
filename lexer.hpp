@@ -10,8 +10,13 @@ namespace lexer
 class Lexer
 {
   public:
+    Lexer() = default;
     explicit Lexer(std::string input);
+
     token::Token NextToken();
+    bool ReadInput(std::string mo_input);
+    void Reset();
+    std::string GetInput();
 
   private:
     void ReadChar();

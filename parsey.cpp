@@ -10,13 +10,15 @@
 #include "parser.hpp"
 #include "token.hpp"
 
+constexpr char prompt[] = ">> ";
+
 int main()
 {
-    const std::string prompt = ">> ";
-
     auto env = std::make_shared<object::Environment>();
 
     std::cout << prompt;
+    auto lex = std::make_shared<lexer::Lexer>();
+
     for (std::string input; std::getline(std::cin, input);)
     {
         if (input.empty())
@@ -25,13 +27,25 @@ int main()
             continue;
         }
 
-        auto lex = std::make_unique<lexer::Lexer>(input);
-        auto parsley = std::make_unique<parser::Parser>(std::move(lex));
-        auto program = parsley->ParseProgram();
+        bool done_slurping = lex->ReadInput(input);
+        if (!done_slurping)
+        {
+            std::cout << ">>>> ";
+            continue;
+        }
+
+        std::unique_ptr<parser::Parser> parsley =
+            std::make_unique<parser::Parser>(lex);
+
+        std::shared_ptr<ast::Program> program = parsley->ParseProgram();
 
         auto evaluated = evaluator::Eval(program, env);
         if (evaluated)
+        {
             std::cout << evaluated->Inspect() << std::endl;
+        }
+
+        lex->Reset();
 
         std::cout << prompt;
     }

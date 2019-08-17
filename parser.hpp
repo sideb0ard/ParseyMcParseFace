@@ -39,7 +39,7 @@ const std::unordered_map<token::TokenType, Precedence> precedences{
 class Parser
 {
   public:
-    explicit Parser(std::unique_ptr<lexer::Lexer> lexer);
+    explicit Parser(std::shared_ptr<lexer::Lexer> lexer);
 
     std::shared_ptr<ast::Program> ParseProgram();
     bool CheckErrors();
@@ -80,7 +80,7 @@ class Parser
     void NextToken();
 
   private:
-    std::unique_ptr<lexer::Lexer> lexer_;
+    std::shared_ptr<lexer::Lexer> lexer_;
     token::Token cur_token_;
     token::Token peek_token_;
 

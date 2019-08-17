@@ -11,15 +11,15 @@
 namespace object
 {
 
-const char NULL_OBJ[] = "NULL";
-const char ERROR_OBJ[] = "ERROR";
+constexpr char NULL_OBJ[] = "NULL";
+constexpr char ERROR_OBJ[] = "ERROR";
 
-const char INTEGER_OBJ[] = "INTEGER";
-const char BOOLEAN_OBJ[] = "BOOLEAN";
+constexpr char INTEGER_OBJ[] = "INTEGER";
+constexpr char BOOLEAN_OBJ[] = "BOOLEAN";
 
-const char RETURN_VALUE_OBJ[] = "RETURN_VALUE";
+constexpr char RETURN_VALUE_OBJ[] = "RETURN_VALUE";
 
-const char FUNCTION_OBJ[] = "FUNCTION";
+constexpr char FUNCTION_OBJ[] = "FUNCTION";
 
 using ObjectType = std::string;
 

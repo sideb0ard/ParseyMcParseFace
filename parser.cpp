@@ -11,7 +11,7 @@
 namespace parser
 {
 
-Parser::Parser(std::unique_ptr<lexer::Lexer> lexer) : lexer_{std::move(lexer)}
+Parser::Parser(std::shared_ptr<lexer::Lexer> lexer) : lexer_{lexer}
 {
     NextToken();
     NextToken();
