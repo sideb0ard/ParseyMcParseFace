@@ -21,6 +21,8 @@ constexpr char RETURN_VALUE_OBJ[] = "RETURN_VALUE";
 
 constexpr char FUNCTION_OBJ[] = "FUNCTION";
 
+constexpr char STRING_OBJ[] = "STRING";
+
 using ObjectType = std::string;
 
 class Object
@@ -51,6 +53,17 @@ class Boolean : public Object
 
   public:
     bool value_;
+};
+
+class String : public Object
+{
+  public:
+    explicit String(std::string val) : value_{val} {};
+    ObjectType Type() override { return STRING_OBJ; }
+    std::string Inspect() override { return value_; }
+
+  public:
+    std::string value_;
 };
 
 class ReturnValue : public Object

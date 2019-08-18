@@ -105,6 +105,19 @@ TEST_F(EvaluatorTest, TestIntegerExpression)
     }
 }
 
+TEST_F(EvaluatorTest, TestString)
+{
+    std::string input = R"("Hello World!")";
+    std::shared_ptr<object::Object> evaluated = TestEval(input);
+    std::shared_ptr<object::String> sliteral =
+        std::dynamic_pointer_cast<object::String>(evaluated);
+    if (!sliteral)
+    {
+        FAIL() << "Not a StringLiteral - got " << typeid(evaluated).name();
+    }
+    EXPECT_EQ(sliteral->value_, "Hello World!");
+}
+
 TEST_F(EvaluatorTest, TestBooleanExpression)
 {
     struct TestCase

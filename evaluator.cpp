@@ -166,6 +166,13 @@ std::shared_ptr<object::Object> Eval(std::shared_ptr<ast::Node> node,
             return NewError("Not a function object, mate:%s!", fun->Type());
     }
 
+    std::shared_ptr<ast::StringLiteral> sliteral =
+        std::dynamic_pointer_cast<ast::StringLiteral>(node);
+    if (sliteral)
+    {
+        return std::make_shared<object::String>(sliteral->value_);
+    }
+
     return NULLL;
 }
 
