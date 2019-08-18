@@ -217,6 +217,13 @@ EvalInfixExpression(std::string op, std::shared_ptr<object::Object> left,
         auto rightie = std::dynamic_pointer_cast<object::Integer>(right);
         return EvalIntegerInfixExpression(op, leftie, rightie);
     }
+    else if (left->Type() == object::STRING_OBJ &&
+             right->Type() == object::STRING_OBJ)
+    {
+        auto leftie = std::dynamic_pointer_cast<object::String>(left);
+        auto rightie = std::dynamic_pointer_cast<object::String>(right);
+        return EvalStringInfixExpression(op, leftie, rightie);
+    }
     else if (op.compare("==") == 0)
         return NativeBoolToBooleanObject(left == right);
     else if (op.compare("!=") == 0)
@@ -257,6 +264,17 @@ EvalIntegerInfixExpression(std::string op,
 
     return NewError("unknown operator: %s %s %s", left->Type(), op,
                     right->Type());
+}
+
+std::shared_ptr<object::Object>
+EvalStringInfixExpression(std::string op, std::shared_ptr<object::String> left,
+                          std::shared_ptr<object::String> right)
+{
+    if (op.compare("+") != 0)
+        return NewError("unknown operator: %s %s %s", left->Type(), op,
+                        right->Type());
+
+    return std::make_shared<object::String>(left->value_ + right->value_);
 }
 
 std::shared_ptr<object::Object>

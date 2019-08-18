@@ -38,6 +38,10 @@ EvalIntegerInfixExpression(std::string op,
                            std::shared_ptr<object::Integer> right);
 
 std::shared_ptr<object::Object>
+EvalStringInfixExpression(std::string op, std::shared_ptr<object::String> left,
+                          std::shared_ptr<object::String> right);
+
+std::shared_ptr<object::Object>
 EvalBangOperatorExpression(std::shared_ptr<object::Object> right);
 
 std::shared_ptr<object::Object>

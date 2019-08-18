@@ -240,7 +240,8 @@ TEST_F(EvaluatorTest, TestErrorHandling)
          "unknown operator: BOOLEAN + BOOLEAN"},
         {"if (10 > 1) { if (10 > 1) { true + false; } return 1;}",
          "unknown operator: BOOLEAN + BOOLEAN"},
-        {"foobar", "identifier not found: foobar"}};
+        {"foobar", "identifier not found: foobar"},
+        {R"("hello" - "world")", "unknown operator: STRING - STRING"}};
 
     for (auto tt : tests)
     {
@@ -287,8 +288,8 @@ TEST_F(EvaluatorTest, TestFunctionObject)
     EXPECT_TRUE(fn);
     if (!fn)
     {
-        std::cerr << "Object is not a function. Got "
-                  << typeid(evaluated).name() << "\n\n";
+        FAIL() << "Object is not a function. Got " << typeid(evaluated).name()
+               << "\n\n";
     }
     EXPECT_EQ(fn->parameters_.size(), 1);
     EXPECT_EQ(fn->parameters_[0]->String(), "x");
@@ -325,6 +326,21 @@ let addTwo = newAdder(2);
 addTwo(2);)";
 
     TestIntegerObject(TestEval(input), 4);
+}
+
+TEST_F(EvaluatorTest, TestStringConcatentation)
+{
+    auto input = R"("Hello" + " " + "World!")";
+    std::shared_ptr<object::Object> evaluated = TestEval(input);
+    std::shared_ptr<object::String> str_obj =
+        std::dynamic_pointer_cast<object::String>(evaluated);
+    if (!str_obj)
+    {
+        FAIL() << "Object is not a String. Got " << typeid(evaluated).name()
+               << "\n\n";
+    }
+
+    EXPECT_EQ(str_obj->value_, "Hello World!");
 }
 
 } // namespace
