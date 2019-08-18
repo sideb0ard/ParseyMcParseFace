@@ -58,6 +58,18 @@ class IntegerLiteral : public Expression
     int64_t value_;
 };
 
+class StringLiteral : public Expression
+{
+  public:
+    StringLiteral(Token token, std::string val) : Expression{token}, value_{val}
+    {
+    }
+    std::string String() const override { return value_; }
+
+  public:
+    std::string value_;
+};
+
 class BooleanExpression : public Expression
 {
   public:

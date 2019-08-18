@@ -42,7 +42,9 @@ int main()
         auto evaluated = evaluator::Eval(program, env);
         if (evaluated)
         {
-            std::cout << evaluated->Inspect() << std::endl;
+            auto result = evaluated->Inspect();
+            if (result.compare("null") != 0)
+                std::cout << result << std::endl;
         }
 
         lex->Reset();

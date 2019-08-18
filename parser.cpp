@@ -169,6 +169,8 @@ static bool IsInfixOperator(token::TokenType type)
 
 std::shared_ptr<ast::Expression> Parser::ParseExpression(Precedence p)
 {
+    // these are the 'nuds' (null detontations) in the Vaughan Pratt paper 'top
+    // down operator precedence'.
     std::shared_ptr<ast::Expression> left_expr = ParseForPrefixExpression();
 
     if (!left_expr)
@@ -181,7 +183,7 @@ std::shared_ptr<ast::Expression> Parser::ParseExpression(Precedence p)
             NextToken();
             if (cur_token_.type_ == token::LPAREN)
                 left_expr = ParseCallExpression(left_expr);
-            else
+            else // these are the 'leds' (left denotation)
                 left_expr = ParseInfixExpression(left_expr);
         }
         else
@@ -212,6 +214,8 @@ std::shared_ptr<ast::Expression> Parser::ParseForPrefixExpression()
         return ParseIfExpression();
     else if (cur_token_.type_ == token::FUNCTION)
         return ParseFunctionLiteral();
+    else if (cur_token_.type_ == token::STRING)
+        return ParseStringLiteral();
 
     std::cout << "No Prefix parser for " << cur_token_.type_ << std::endl;
     return nullptr;
@@ -282,6 +286,12 @@ std::shared_ptr<ast::Expression> Parser::ParseFunctionLiteral()
     lit->body_ = ParseBlockStatement();
 
     return lit;
+}
+
+std::shared_ptr<ast::Expression> Parser::ParseStringLiteral()
+{
+    return std::make_shared<ast::StringLiteral>(cur_token_,
+                                                cur_token_.literal_);
 }
 
 std::shared_ptr<ast::Expression> Parser::ParsePrefixExpression()

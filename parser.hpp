@@ -61,6 +61,7 @@ class Parser
     std::shared_ptr<ast::Expression> ParseIfExpression();
 
     std::shared_ptr<ast::Expression> ParseFunctionLiteral();
+    std::shared_ptr<ast::Expression> ParseStringLiteral();
     std::vector<std::shared_ptr<ast::Identifier>> ParseFunctionParameters();
 
     std::shared_ptr<ast::Expression>

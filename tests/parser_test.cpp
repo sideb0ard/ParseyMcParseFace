@@ -1,18 +1,17 @@
+#include <variant>
+
 #include <iostream>
 #include <memory>
+#include <string>
 #include <type_traits>
-#include <variant>
+#include <utility>
+#include <vector>
 
 #include "gtest/gtest.h"
 
 #include "../lexer.hpp"
 #include "../parser.hpp"
 #include "../token.hpp"
-
-using namespace ast;
-using namespace lexer;
-using namespace token;
-using namespace parser;
 
 // helper type for the visitor #3
 template <class T> struct always_false : std::false_type
@@ -26,7 +25,7 @@ struct ParserTest : public ::testing::Test
 {
 };
 
-bool TestLetStatement(std::shared_ptr<Statement> s, std::string name)
+bool TestLetStatement(std::shared_ptr<ast::Statement> s, std::string name)
 {
     std::cout << "Literal is " << s->TokenLiteral() << std::endl;
 
@@ -37,8 +36,8 @@ bool TestLetStatement(std::shared_ptr<Statement> s, std::string name)
 
     std::cout << "s is of type " << typeid(s).name() << std::endl;
 
-    std::shared_ptr<LetStatement> ls =
-        std::dynamic_pointer_cast<LetStatement>(s);
+    std::shared_ptr<ast::LetStatement> ls =
+        std::dynamic_pointer_cast<ast::LetStatement>(s);
     if (!ls)
         return false;
     std::cout << "CAST WAS All good!\n";
@@ -54,10 +53,10 @@ bool TestLetStatement(std::shared_ptr<Statement> s, std::string name)
     return true;
 }
 
-bool TestIdentifier(std::shared_ptr<Expression> expr, std::string val)
+bool TestIdentifier(std::shared_ptr<ast::Expression> expr, std::string val)
 {
-    std::shared_ptr<Identifier> ident =
-        std::dynamic_pointer_cast<Identifier>(expr);
+    std::shared_ptr<ast::Identifier> ident =
+        std::dynamic_pointer_cast<ast::Identifier>(expr);
     if (!ident)
         return false;
     if (ident->value_ != val)
@@ -67,10 +66,10 @@ bool TestIdentifier(std::shared_ptr<Expression> expr, std::string val)
     return true;
 }
 
-bool TestIntegerLiteral(std::shared_ptr<Expression> expr, int64_t value)
+bool TestIntegerLiteral(std::shared_ptr<ast::Expression> expr, int64_t value)
 {
-    std::shared_ptr<IntegerLiteral> integ =
-        std::dynamic_pointer_cast<IntegerLiteral>(expr);
+    std::shared_ptr<ast::IntegerLiteral> integ =
+        std::dynamic_pointer_cast<ast::IntegerLiteral>(expr);
     if (!integ)
         return false;
     if (integ->value_ != value)
@@ -80,10 +79,10 @@ bool TestIntegerLiteral(std::shared_ptr<Expression> expr, int64_t value)
     return true;
 }
 
-bool TestBooleanLiteral(std::shared_ptr<Expression> expr, bool val)
+bool TestBooleanLiteral(std::shared_ptr<ast::Expression> expr, bool val)
 {
-    std::shared_ptr<BooleanExpression> bool_expr =
-        std::dynamic_pointer_cast<BooleanExpression>(expr);
+    std::shared_ptr<ast::BooleanExpression> bool_expr =
+        std::dynamic_pointer_cast<ast::BooleanExpression>(expr);
     if (!bool_expr)
     {
         std::cerr << "Not an BooleanExpression - got " << typeid(&expr).name()
@@ -99,7 +98,7 @@ bool TestBooleanLiteral(std::shared_ptr<Expression> expr, bool val)
     return true;
 }
 
-bool TestLiteralExpression(std::shared_ptr<Expression> expr,
+bool TestLiteralExpression(std::shared_ptr<ast::Expression> expr,
                            std::variant<int64_t, std::string, bool> val)
 {
 
@@ -121,13 +120,13 @@ bool TestLiteralExpression(std::shared_ptr<Expression> expr,
     return false;
 }
 
-bool TestInfixExpression(std::shared_ptr<Expression> expr,
+bool TestInfixExpression(std::shared_ptr<ast::Expression> expr,
                          std::variant<int64_t, std::string, bool> left,
                          std::string op,
                          std::variant<int64_t, std::string, bool> right)
 {
-    std::shared_ptr<InfixExpression> op_expr =
-        std::dynamic_pointer_cast<InfixExpression>(expr);
+    std::shared_ptr<ast::InfixExpression> op_expr =
+        std::dynamic_pointer_cast<ast::InfixExpression>(expr);
     if (!op_expr)
     {
         std::cerr << "Not an InfixExpression - got " << typeid(&expr).name();
@@ -174,17 +173,19 @@ TEST_F(ParserTest, TestLetStatements)
     {
 
         std::cout << "Parsey Test setup!\n";
-        std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(tt.input);
-        std::unique_ptr<Parser> parsley =
-            std::make_unique<Parser>(std::move(lex));
-        std::shared_ptr<Program> program = parsley->ParseProgram();
+        std::unique_ptr<lexer::Lexer> lex =
+            std::make_unique<lexer::Lexer>(tt.input);
+        std::unique_ptr<parser::Parser> parsley =
+            std::make_unique<parser::Parser>(std::move(lex));
+        std::shared_ptr<ast::Program> program = parsley->ParseProgram();
         EXPECT_FALSE(parsley->CheckErrors());
 
         EXPECT_TRUE(
             TestLetStatement(program->statements_[0], tt.expected_ident));
 
-        std::shared_ptr<LetStatement> stmt =
-            std::dynamic_pointer_cast<LetStatement>(program->statements_[0]);
+        std::shared_ptr<ast::LetStatement> stmt =
+            std::dynamic_pointer_cast<ast::LetStatement>(
+                program->statements_[0]);
         if (!stmt)
             FAIL() << "program->statements_[0] is not an LetStatement";
 
@@ -207,15 +208,17 @@ TEST_F(ParserTest, TestReturnStatements)
 
     for (auto tt : tests)
     {
-        std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(tt.input);
-        std::unique_ptr<Parser> parsley =
-            std::make_unique<Parser>(std::move(lex));
-        std::shared_ptr<Program> program = parsley->ParseProgram();
+        std::unique_ptr<lexer::Lexer> lex =
+            std::make_unique<lexer::Lexer>(tt.input);
+        std::unique_ptr<parser::Parser> parsley =
+            std::make_unique<parser::Parser>(std::move(lex));
+        std::shared_ptr<ast::Program> program = parsley->ParseProgram();
         EXPECT_FALSE(parsley->CheckErrors());
 
         ASSERT_EQ(1, program->statements_.size());
-        std::shared_ptr<ReturnStatement> stmt =
-            std::dynamic_pointer_cast<ReturnStatement>(program->statements_[0]);
+        std::shared_ptr<ast::ReturnStatement> stmt =
+            std::dynamic_pointer_cast<ast::ReturnStatement>(
+                program->statements_[0]);
         if (!stmt)
             FAIL() << "program->statements_[0] is not an ReturnStatement";
 
@@ -229,18 +232,44 @@ TEST_F(ParserTest, TestReturnStatements)
     }
 }
 
+TEST_F(ParserTest, TestStringLiteralExpression)
+{
+    std::string input = R"("hello world";)";
+    std::shared_ptr<lexer::Lexer> lex = std::make_shared<lexer::Lexer>(input);
+    std::unique_ptr<parser::Parser> parsley =
+        std::make_unique<parser::Parser>(lex);
+    std::shared_ptr<ast::Program> program = parsley->ParseProgram();
+    EXPECT_FALSE(parsley->CheckErrors());
+    ASSERT_EQ(1, program->statements_.size());
+    std::shared_ptr<ast::ExpressionStatement> stmt =
+        std::dynamic_pointer_cast<ast::ExpressionStatement>(
+            program->statements_[0]);
+    if (!stmt)
+        FAIL() << "program->statements_[0] is not an ExpressionStatement";
+
+    std::shared_ptr<ast::StringLiteral> literal =
+        std::dynamic_pointer_cast<ast::StringLiteral>(stmt->expression_);
+    if (!literal)
+        FAIL() << "program->statements_[0] is not a StringLiteral. Got "
+               << typeid(&stmt->expression_).name();
+
+    if (literal->value_.compare("hello world") != 0)
+        FAIL() << "literal.value_ is not " << input << ". Got "
+               << literal->value_ << std::endl;
+}
+
 TEST_F(ParserTest, TestString)
 {
     std::string input = R"(let myVar = anotherVar;)";
 
-    Token toke{LET, "let"};
-    std::shared_ptr<LetStatement> stmt = std::make_shared<LetStatement>(toke);
-    Token name{IDENT, "myVar"};
-    stmt->name_ = std::make_shared<Identifier>(name, "myVar");
-    Token val{IDENT, "anotherVar"};
-    stmt->value_ = std::make_shared<Identifier>(val, "anotherVar");
+    token::Token toke{token::LET, "let"};
+    auto stmt = std::make_shared<ast::LetStatement>(toke);
+    token::Token name{token::IDENT, "myVar"};
+    stmt->name_ = std::make_shared<ast::Identifier>(name, "myVar");
+    token::Token val{token::IDENT, "anotherVar"};
+    stmt->value_ = std::make_shared<ast::Identifier>(val, "anotherVar");
 
-    std::unique_ptr<Program> program = std::make_unique<Program>();
+    std::unique_ptr<ast::Program> program = std::make_unique<ast::Program>();
     program->statements_.push_back(stmt);
 
     ASSERT_EQ(input, program->String());
@@ -249,19 +278,21 @@ TEST_F(ParserTest, TestString)
 TEST_F(ParserTest, TestIdentifierExpression)
 {
     std::string input = "foobar";
-    std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(input);
-    std::unique_ptr<Parser> parsley = std::make_unique<Parser>(std::move(lex));
-    std::shared_ptr<Program> program = parsley->ParseProgram();
+    std::shared_ptr<lexer::Lexer> lex = std::make_shared<lexer::Lexer>(input);
+    std::unique_ptr<parser::Parser> parsley =
+        std::make_unique<parser::Parser>(lex);
+    std::shared_ptr<ast::Program> program = parsley->ParseProgram();
     EXPECT_FALSE(parsley->CheckErrors());
     ASSERT_EQ(1, program->statements_.size());
 
-    std::shared_ptr<ExpressionStatement> stmt =
-        std::dynamic_pointer_cast<ExpressionStatement>(program->statements_[0]);
+    std::shared_ptr<ast::ExpressionStatement> stmt =
+        std::dynamic_pointer_cast<ast::ExpressionStatement>(
+            program->statements_[0]);
     if (!stmt)
         FAIL() << "program->statements_[0] is not an ExpressionStatement";
 
-    std::shared_ptr<Identifier> ident =
-        std::dynamic_pointer_cast<Identifier>(stmt->expression_);
+    std::shared_ptr<ast::Identifier> ident =
+        std::dynamic_pointer_cast<ast::Identifier>(stmt->expression_);
     if (!ident)
         FAIL() << "Not an Identifier - got "
                << typeid(&stmt->expression_).name();
@@ -273,19 +304,21 @@ TEST_F(ParserTest, TestIfExpression)
 {
     std::string input = "if (x < y) { x }";
     std::cout << "IFFF! -- " << input << std::endl;
-    std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(input);
-    std::unique_ptr<Parser> parsley = std::make_unique<Parser>(std::move(lex));
-    std::shared_ptr<Program> program = parsley->ParseProgram();
+    std::unique_ptr<lexer::Lexer> lex = std::make_unique<lexer::Lexer>(input);
+    std::unique_ptr<parser::Parser> parsley =
+        std::make_unique<parser::Parser>(std::move(lex));
+    std::shared_ptr<ast::Program> program = parsley->ParseProgram();
     EXPECT_FALSE(parsley->CheckErrors());
     ASSERT_EQ(1, program->statements_.size());
 
-    std::shared_ptr<ExpressionStatement> stmt =
-        std::dynamic_pointer_cast<ExpressionStatement>(program->statements_[0]);
+    std::shared_ptr<ast::ExpressionStatement> stmt =
+        std::dynamic_pointer_cast<ast::ExpressionStatement>(
+            program->statements_[0]);
     if (!stmt)
         FAIL() << "program->statements_[0] is not an ExpressionStatement";
 
-    std::shared_ptr<IfExpression> expr =
-        std::dynamic_pointer_cast<IfExpression>(stmt->expression_);
+    std::shared_ptr<ast::IfExpression> expr =
+        std::dynamic_pointer_cast<ast::IfExpression>(stmt->expression_);
     if (!expr)
         FAIL() << "Not an IfExpression - got "
                << typeid(&stmt->expression_).name();
@@ -296,8 +329,8 @@ TEST_F(ParserTest, TestIfExpression)
     ASSERT_TRUE(TestInfixExpression(expr->condition_, left, "<", right));
 
     ASSERT_EQ(1, expr->consequence_->statements_.size());
-    std::shared_ptr<ExpressionStatement> consequence =
-        std::dynamic_pointer_cast<ExpressionStatement>(
+    std::shared_ptr<ast::ExpressionStatement> consequence =
+        std::dynamic_pointer_cast<ast::ExpressionStatement>(
             expr->consequence_->statements_[0]);
     if (!consequence)
         FAIL() << "Not an Expression Statement! - got "
@@ -314,19 +347,21 @@ TEST_F(ParserTest, TestIfElseExpression)
 {
     std::string input = "if (x < y) { x } else { y }";
     std::cout << "IFFF ELSE! -- " << input << std::endl;
-    std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(input);
-    std::unique_ptr<Parser> parsley = std::make_unique<Parser>(std::move(lex));
-    std::shared_ptr<Program> program = parsley->ParseProgram();
+    std::unique_ptr<lexer::Lexer> lex = std::make_unique<lexer::Lexer>(input);
+    std::unique_ptr<parser::Parser> parsley =
+        std::make_unique<parser::Parser>(std::move(lex));
+    std::shared_ptr<ast::Program> program = parsley->ParseProgram();
     EXPECT_FALSE(parsley->CheckErrors());
     ASSERT_EQ(1, program->statements_.size());
 
-    std::shared_ptr<ExpressionStatement> stmt =
-        std::dynamic_pointer_cast<ExpressionStatement>(program->statements_[0]);
+    std::shared_ptr<ast::ExpressionStatement> stmt =
+        std::dynamic_pointer_cast<ast::ExpressionStatement>(
+            program->statements_[0]);
     if (!stmt)
         FAIL() << "program->statements_[0] is not an ExpressionStatement";
 
-    std::shared_ptr<IfExpression> expr =
-        std::dynamic_pointer_cast<IfExpression>(stmt->expression_);
+    std::shared_ptr<ast::IfExpression> expr =
+        std::dynamic_pointer_cast<ast::IfExpression>(stmt->expression_);
     if (!expr)
         FAIL() << "Not an IfExpression - got "
                << typeid(&stmt->expression_).name();
@@ -338,8 +373,8 @@ TEST_F(ParserTest, TestIfElseExpression)
 
     ASSERT_EQ(1, expr->consequence_->statements_.size());
 
-    std::shared_ptr<ExpressionStatement> consequence =
-        std::dynamic_pointer_cast<ExpressionStatement>(
+    std::shared_ptr<ast::ExpressionStatement> consequence =
+        std::dynamic_pointer_cast<ast::ExpressionStatement>(
             expr->consequence_->statements_[0]);
     if (!consequence)
         FAIL() << "Not an Expression Statement! - got "
@@ -349,8 +384,8 @@ TEST_F(ParserTest, TestIfElseExpression)
         FAIL() << "Not an IdentifierExpression!\n";
 
     ASSERT_EQ(1, expr->alternative_->statements_.size());
-    std::shared_ptr<ExpressionStatement> alternative =
-        std::dynamic_pointer_cast<ExpressionStatement>(
+    std::shared_ptr<ast::ExpressionStatement> alternative =
+        std::dynamic_pointer_cast<ast::ExpressionStatement>(
             expr->alternative_->statements_[0]);
     if (!alternative)
         FAIL() << "Not an Expression Statement! - got "
@@ -362,19 +397,21 @@ TEST_F(ParserTest, TestIfElseExpression)
 TEST_F(ParserTest, TestIntegerLiteralExpression)
 {
     std::string input = "5";
-    std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(input);
-    std::unique_ptr<Parser> parsley = std::make_unique<Parser>(std::move(lex));
-    std::shared_ptr<Program> program = parsley->ParseProgram();
+    std::unique_ptr<lexer::Lexer> lex = std::make_unique<lexer::Lexer>(input);
+    std::unique_ptr<parser::Parser> parsley =
+        std::make_unique<parser::Parser>(std::move(lex));
+    std::shared_ptr<ast::Program> program = parsley->ParseProgram();
     EXPECT_FALSE(parsley->CheckErrors());
     ASSERT_EQ(1, program->statements_.size());
 
-    std::shared_ptr<ExpressionStatement> stmt =
-        std::dynamic_pointer_cast<ExpressionStatement>(program->statements_[0]);
+    std::shared_ptr<ast::ExpressionStatement> stmt =
+        std::dynamic_pointer_cast<ast::ExpressionStatement>(
+            program->statements_[0]);
     if (!stmt)
         FAIL() << "program_->statements_[0] is not an ExpressionStatement";
 
-    std::shared_ptr<IntegerLiteral> literal =
-        std::dynamic_pointer_cast<IntegerLiteral>(stmt->expression_);
+    std::shared_ptr<ast::IntegerLiteral> literal =
+        std::dynamic_pointer_cast<ast::IntegerLiteral>(stmt->expression_);
     if (!literal)
         FAIL() << "Not an IntegerLiteral - got "
                << typeid(&stmt->expression_).name();
@@ -397,21 +434,22 @@ TEST_F(ParserTest, TestPrefixExpressions)
                                        {"!false;", "!", false}};
     for (auto tt : prefix_tests)
     {
-        std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(tt.input);
-        std::unique_ptr<Parser> parsley =
-            std::make_unique<Parser>(std::move(lex));
-        std::shared_ptr<Program> program = parsley->ParseProgram();
+        std::unique_ptr<lexer::Lexer> lex =
+            std::make_unique<lexer::Lexer>(tt.input);
+        std::unique_ptr<parser::Parser> parsley =
+            std::make_unique<parser::Parser>(std::move(lex));
+        std::shared_ptr<ast::Program> program = parsley->ParseProgram();
         EXPECT_FALSE(parsley->CheckErrors());
         ASSERT_EQ(1, program->statements_.size());
 
-        std::shared_ptr<ExpressionStatement> stmt =
-            std::dynamic_pointer_cast<ExpressionStatement>(
+        std::shared_ptr<ast::ExpressionStatement> stmt =
+            std::dynamic_pointer_cast<ast::ExpressionStatement>(
                 program->statements_[0]);
         if (!stmt)
             FAIL() << "program_->statements_[0] is not an ExpressionStatement";
 
-        std::shared_ptr<PrefixExpression> expr =
-            std::dynamic_pointer_cast<PrefixExpression>(stmt->expression_);
+        std::shared_ptr<ast::PrefixExpression> expr =
+            std::dynamic_pointer_cast<ast::PrefixExpression>(stmt->expression_);
         if (!expr)
             FAIL() << "Not a Prefix Expression - got "
                    << typeid(&stmt->expression_).name();
@@ -453,14 +491,15 @@ TEST_F(ParserTest, TestInfixExpressions)
     for (auto tt : infix_tests)
     {
         std::cout << "\n\nTesting with input = " << tt.input << std::endl;
-        std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(tt.input);
-        std::unique_ptr<Parser> parsley =
-            std::make_unique<Parser>(std::move(lex));
-        std::shared_ptr<Program> program = parsley->ParseProgram();
+        std::unique_ptr<lexer::Lexer> lex =
+            std::make_unique<lexer::Lexer>(tt.input);
+        std::unique_ptr<parser::Parser> parsley =
+            std::make_unique<parser::Parser>(std::move(lex));
+        std::shared_ptr<ast::Program> program = parsley->ParseProgram();
         EXPECT_FALSE(parsley->CheckErrors());
 
-        std::shared_ptr<ExpressionStatement> stmt =
-            std::dynamic_pointer_cast<ExpressionStatement>(
+        std::shared_ptr<ast::ExpressionStatement> stmt =
+            std::dynamic_pointer_cast<ast::ExpressionStatement>(
                 program->statements_[0]);
         if (!stmt)
             FAIL() << "program_->statements_[0] is not an ExpressionStatement";
@@ -500,17 +539,16 @@ TEST_F(ParserTest, TestOperatorPrecedence)
         {"(5 + 5) * 2", "((5+5)*2)"},
         {"2/(5+5)", "(2/(5+5))"},
         {"-(5 + 5)", "(-(5+5))"},
-        {"!(true == true)", "(!(true==true))"}
-
-    };
+        {"!(true == true)", "(!(true==true))"}};
 
     for (auto tt : tests)
     {
         std::cout << "\n\nTesting with input = " << tt.input << std::endl;
-        std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(tt.input);
-        std::unique_ptr<Parser> parsley =
-            std::make_unique<Parser>(std::move(lex));
-        std::shared_ptr<Program> program = parsley->ParseProgram();
+        std::unique_ptr<lexer::Lexer> lex =
+            std::make_unique<lexer::Lexer>(tt.input);
+        std::unique_ptr<parser::Parser> parsley =
+            std::make_unique<parser::Parser>(std::move(lex));
+        std::shared_ptr<ast::Program> program = parsley->ParseProgram();
         EXPECT_FALSE(parsley->CheckErrors());
 
         auto actual = program->String();
@@ -523,19 +561,21 @@ TEST_F(ParserTest, TestFunctionLiteral)
 {
     std::string input = "fn(x, y) { x + y; }";
     std::cout << "FN LITERAL! -- " << input << std::endl;
-    std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(input);
-    std::unique_ptr<Parser> parsley = std::make_unique<Parser>(std::move(lex));
-    std::shared_ptr<Program> program = parsley->ParseProgram();
+    std::unique_ptr<lexer::Lexer> lex = std::make_unique<lexer::Lexer>(input);
+    std::unique_ptr<parser::Parser> parsley =
+        std::make_unique<parser::Parser>(std::move(lex));
+    std::shared_ptr<ast::Program> program = parsley->ParseProgram();
     EXPECT_FALSE(parsley->CheckErrors());
     ASSERT_EQ(1, program->statements_.size());
 
-    std::shared_ptr<ExpressionStatement> stmt =
-        std::dynamic_pointer_cast<ExpressionStatement>(program->statements_[0]);
+    std::shared_ptr<ast::ExpressionStatement> stmt =
+        std::dynamic_pointer_cast<ast::ExpressionStatement>(
+            program->statements_[0]);
     if (!stmt)
         FAIL() << "program->statements_[0] is not an ExpressionStatement";
 
-    std::shared_ptr<FunctionLiteral> fnlit =
-        std::dynamic_pointer_cast<FunctionLiteral>(stmt->expression_);
+    std::shared_ptr<ast::FunctionLiteral> fnlit =
+        std::dynamic_pointer_cast<ast::FunctionLiteral>(stmt->expression_);
     if (!fnlit)
         FAIL() << "Not an FunctionLiteral - got "
                << typeid(&stmt->expression_).name();
@@ -548,8 +588,8 @@ TEST_F(ParserTest, TestFunctionLiteral)
 
     ASSERT_EQ(1, fnlit->body_->statements_.size());
 
-    std::shared_ptr<ExpressionStatement> body_stmt =
-        std::dynamic_pointer_cast<ExpressionStatement>(
+    std::shared_ptr<ast::ExpressionStatement> body_stmt =
+        std::dynamic_pointer_cast<ast::ExpressionStatement>(
             fnlit->body_->statements_[0]);
 
     if (!body_stmt)
@@ -572,22 +612,23 @@ TEST_F(ParserTest, TestFunctionParameterParsing)
         {"fn(x, y, z) {};", std::vector<std::string>{"x", "y", "z"}}};
     for (auto tt : tests)
     {
-        std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(tt.input);
-        std::unique_ptr<Parser> parsley =
-            std::make_unique<Parser>(std::move(lex));
-        std::shared_ptr<Program> program = parsley->ParseProgram();
+        std::unique_ptr<lexer::Lexer> lex =
+            std::make_unique<lexer::Lexer>(tt.input);
+        std::unique_ptr<parser::Parser> parsley =
+            std::make_unique<parser::Parser>(std::move(lex));
+        std::shared_ptr<ast::Program> program = parsley->ParseProgram();
         EXPECT_FALSE(parsley->CheckErrors());
         ASSERT_EQ(1, program->statements_.size());
 
-        std::shared_ptr<ExpressionStatement> stmt =
-            std::dynamic_pointer_cast<ExpressionStatement>(
+        std::shared_ptr<ast::ExpressionStatement> stmt =
+            std::dynamic_pointer_cast<ast::ExpressionStatement>(
                 program->statements_[0]);
 
         if (!stmt)
             FAIL() << "Not an ExpressionStatement - got "
                    << typeid(program->statements_[0]).name();
-        std::shared_ptr<FunctionLiteral> fnlit =
-            std::dynamic_pointer_cast<FunctionLiteral>(stmt->expression_);
+        std::shared_ptr<ast::FunctionLiteral> fnlit =
+            std::dynamic_pointer_cast<ast::FunctionLiteral>(stmt->expression_);
 
         if (!fnlit)
             FAIL() << "Not an FunctionLiteral - got "
@@ -609,9 +650,10 @@ TEST_F(ParserTest, TestCallExpression)
 {
     std::string input = "add(1, 2 * 3, 4 + 5);";
     std::cout << "CALL EXPRESSION! -- " << input << std::endl;
-    std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(input);
-    std::unique_ptr<Parser> parsley = std::make_unique<Parser>(std::move(lex));
-    std::shared_ptr<Program> program = parsley->ParseProgram();
+    std::unique_ptr<lexer::Lexer> lex = std::make_unique<lexer::Lexer>(input);
+    std::unique_ptr<parser::Parser> parsley =
+        std::make_unique<parser::Parser>(std::move(lex));
+    std::shared_ptr<ast::Program> program = parsley->ParseProgram();
     EXPECT_FALSE(parsley->CheckErrors());
     EXPECT_EQ(1, program->statements_.size());
     if (program->statements_.size() != 1)
@@ -620,13 +662,14 @@ TEST_F(ParserTest, TestCallExpression)
             std::cout << s->String() << std::endl;
     }
 
-    std::shared_ptr<ExpressionStatement> stmt =
-        std::dynamic_pointer_cast<ExpressionStatement>(program->statements_[0]);
+    std::shared_ptr<ast::ExpressionStatement> stmt =
+        std::dynamic_pointer_cast<ast::ExpressionStatement>(
+            program->statements_[0]);
     if (!stmt)
         FAIL() << "program->statements_[0] is not an ExpressionStatement";
 
-    std::shared_ptr<CallExpression> expr =
-        std::dynamic_pointer_cast<CallExpression>(stmt->expression_);
+    std::shared_ptr<ast::CallExpression> expr =
+        std::dynamic_pointer_cast<ast::CallExpression>(stmt->expression_);
     if (!expr)
         FAIL() << "Not an FunctionLiteral - got "
                << typeid(&stmt->expression_).name();
@@ -657,22 +700,23 @@ TEST_F(ParserTest, TestCallExpressionParsing)
     for (auto tt : tests)
     {
         std::cout << "\nTesting! input: " << tt.input << std::endl;
-        std::unique_ptr<Lexer> lex = std::make_unique<Lexer>(tt.input);
-        std::unique_ptr<Parser> parsley =
-            std::make_unique<Parser>(std::move(lex));
-        std::shared_ptr<Program> program = parsley->ParseProgram();
+        std::unique_ptr<lexer::Lexer> lex =
+            std::make_unique<lexer::Lexer>(tt.input);
+        std::unique_ptr<parser::Parser> parsley =
+            std::make_unique<parser::Parser>(std::move(lex));
+        std::shared_ptr<ast::Program> program = parsley->ParseProgram();
         EXPECT_FALSE(parsley->CheckErrors());
         ASSERT_EQ(1, program->statements_.size());
 
-        std::shared_ptr<ExpressionStatement> stmt =
-            std::dynamic_pointer_cast<ExpressionStatement>(
+        std::shared_ptr<ast::ExpressionStatement> stmt =
+            std::dynamic_pointer_cast<ast::ExpressionStatement>(
                 program->statements_[0]);
         if (!stmt)
             FAIL() << "Not an ExpressionStatement - got "
                    << typeid(program->statements_[0]).name();
 
-        std::shared_ptr<CallExpression> expr =
-            std::dynamic_pointer_cast<CallExpression>(stmt->expression_);
+        std::shared_ptr<ast::CallExpression> expr =
+            std::dynamic_pointer_cast<ast::CallExpression>(stmt->expression_);
         if (!expr)
             FAIL() << "Not an CallExpression - got "
                    << typeid(&stmt->expression_).name();
