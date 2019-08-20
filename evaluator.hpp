@@ -62,7 +62,7 @@ EvalExpressions(std::vector<std::shared_ptr<ast::Expression>> exps,
                 std::shared_ptr<object::Environment> env);
 
 std::shared_ptr<object::Object>
-ApplyFunction(std::shared_ptr<object::Function> fun,
+ApplyFunction(std::shared_ptr<object::Object> callable,
               std::vector<std::shared_ptr<object::Object>> args);
 
 std::shared_ptr<object::Environment>

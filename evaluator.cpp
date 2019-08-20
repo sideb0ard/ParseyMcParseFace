@@ -2,6 +2,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -31,6 +32,20 @@ bool IsError(std::shared_ptr<object::Object> obj)
     }
     return false;
 }
+
+std::unordered_map<std::string, std::shared_ptr<object::BuiltIn>> built_ins = {
+    {"len",
+     std::make_shared<object::BuiltIn>([](std::shared_ptr<object::Object> input)
+                                           -> std::shared_ptr<object::Object> {
+         std::shared_ptr<object::String> str_obj =
+             std::dynamic_pointer_cast<object::String>(input);
+         if (!str_obj)
+         {
+             return evaluator::NewError(
+                 "argument to `len` not supported, got %s", input->Type());
+         }
+         return std::make_shared<object::Integer>(str_obj->value_.size());
+     })}};
 
 } // namespace
 
@@ -162,8 +177,12 @@ std::shared_ptr<object::Object> Eval(std::shared_ptr<ast::Node> node,
         auto func_obj = std::dynamic_pointer_cast<object::Function>(fun);
         if (func_obj)
             return ApplyFunction(func_obj, args);
-        else
-            return NewError("Not a function object, mate:%s!", fun->Type());
+
+        auto builtin_func = std::dynamic_pointer_cast<object::BuiltIn>(fun);
+        if (builtin_func)
+            return ApplyFunction(builtin_func, args);
+
+        return NewError("Not a function object, mate:%s!", fun->Type());
     }
 
     std::shared_ptr<ast::StringLiteral> sliteral =
@@ -174,7 +193,7 @@ std::shared_ptr<object::Object> Eval(std::shared_ptr<ast::Node> node,
     }
 
     return NULLL;
-}
+} // namespace
 
 std::shared_ptr<object::Object>
 EvalPrefixExpression(std::string op, std::shared_ptr<object::Object> right)
@@ -356,9 +375,14 @@ EvalIdentifier(std::shared_ptr<ast::Identifier> ident,
                std::shared_ptr<object::Environment> env)
 {
     auto val = env->Get(ident->value_);
-    if (!val)
-        return NewError("identifier not found: %s", ident->value_);
-    return val;
+    if (val)
+        return val;
+
+    auto builtin = built_ins[ident->value_];
+    if (builtin)
+        return builtin;
+
+    return NewError("identifier not found: %s", ident->value_);
 }
 
 std::vector<std::shared_ptr<object::Object>>
@@ -380,12 +404,26 @@ EvalExpressions(std::vector<std::shared_ptr<ast::Expression>> exps,
 }
 
 std::shared_ptr<object::Object>
-ApplyFunction(std::shared_ptr<object::Function> fun,
+ApplyFunction(std::shared_ptr<object::Object> callable,
               std::vector<std::shared_ptr<object::Object>> args)
 {
-    auto extended_env = ExtendFunctionEnv(fun, args);
-    auto evaluated = Eval(fun->body_, extended_env);
-    return UnwrapReturnValue(evaluated);
+    std::shared_ptr<object::Function> func =
+        std::dynamic_pointer_cast<object::Function>(callable);
+    if (func)
+    {
+        auto extended_env = ExtendFunctionEnv(func, args);
+        auto evaluated = Eval(func->body_, extended_env);
+        return UnwrapReturnValue(evaluated);
+    }
+
+    std::shared_ptr<object::BuiltIn> builtin =
+        std::dynamic_pointer_cast<object::BuiltIn>(callable);
+    if (builtin)
+    {
+        return builtin->func_(args[0]);
+    }
+
+    return NewError("Something funky with yer functions, mate!");
 }
 
 std::shared_ptr<object::Environment>

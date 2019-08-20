@@ -343,4 +343,20 @@ TEST_F(EvaluatorTest, TestStringConcatentation)
     EXPECT_EQ(str_obj->value_, "Hello World!");
 }
 
+TEST_F(EvaluatorTest, TestInBuiltFunctions)
+{
+    struct TestCaseInt
+    {
+        std::string input;
+        int64_t expected;
+    };
+    std::vector<TestCaseInt> tests{{R"(len(""))", 0},
+                                   {R"(len("four"))", 4},
+                                   {R"(len("hello wurld"))", 11}};
+    for (auto &tt : tests)
+    {
+        EXPECT_TRUE(TestIntegerObject(TestEval(tt.input), tt.expected));
+    }
+}
+
 } // namespace

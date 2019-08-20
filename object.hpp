@@ -23,6 +23,8 @@ constexpr char FUNCTION_OBJ[] = "FUNCTION";
 
 constexpr char STRING_OBJ[] = "STRING";
 
+constexpr char BUILTIN_OBJ[] = "BUILTIN";
+
 using ObjectType = std::string;
 
 class Object
@@ -126,6 +128,21 @@ class Function : public Object
     std::vector<std::shared_ptr<ast::Identifier>> parameters_;
     std::shared_ptr<Environment> env_;
     std::shared_ptr<ast::BlockStatement> body_;
+};
+
+using BuiltInFunc = std::function<std::shared_ptr<object::Object>(
+    std::shared_ptr<object::Object>)>;
+
+class BuiltIn : public Object
+{
+  public:
+    explicit BuiltIn(BuiltInFunc fn) : func_{fn} {}
+    ~BuiltIn() = default;
+    ObjectType Type() override { return BUILTIN_OBJ; }
+    std::string Inspect() override { return "builtin function"; }
+
+  public:
+    BuiltInFunc func_;
 };
 
 } // namespace object
