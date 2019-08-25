@@ -34,18 +34,33 @@ bool IsError(std::shared_ptr<object::Object> obj)
 }
 
 std::unordered_map<std::string, std::shared_ptr<object::BuiltIn>> built_ins = {
-    {"len",
-     std::make_shared<object::BuiltIn>([](std::shared_ptr<object::Object> input)
-                                           -> std::shared_ptr<object::Object> {
-         std::shared_ptr<object::String> str_obj =
-             std::dynamic_pointer_cast<object::String>(input);
-         if (!str_obj)
-         {
-             return evaluator::NewError(
-                 "argument to `len` not supported, got %s", input->Type());
-         }
-         return std::make_shared<object::Integer>(str_obj->value_.size());
-     })}};
+    {"len", std::make_shared<object::BuiltIn>(
+                [](std::vector<std::shared_ptr<object::Object>> input)
+                    -> std::shared_ptr<object::Object> {
+                    if (input.size() != 1)
+                        return evaluator::NewError(
+                            "Too many arguments for len - can only accept one");
+                    std::shared_ptr<object::String> str_obj =
+                        std::dynamic_pointer_cast<object::String>(input[0]);
+                    if (!str_obj)
+                    {
+                        return evaluator::NewError(
+                            "argument to `len` not supported, got %s",
+                            input[0]->Type());
+                    }
+                    return std::make_shared<object::Integer>(
+                        str_obj->value_.size());
+                })},
+    {"jobbie",
+     std::make_shared<object::BuiltIn>(
+         [](std::vector<std::shared_ptr<object::Object>> input)
+             -> std::shared_ptr<object::Object> {
+             if (input.size() != 2)
+                 return evaluator::NewError(
+                     "Not correct amount of arguments for jobbie - need two");
+             std::cout << "Yolde! two param BuiltIn!\n";
+             return std::make_shared<object::Integer>(74);
+         })}};
 
 } // namespace
 
@@ -420,7 +435,7 @@ ApplyFunction(std::shared_ptr<object::Object> callable,
         std::dynamic_pointer_cast<object::BuiltIn>(callable);
     if (builtin)
     {
-        return builtin->func_(args[0]);
+        return builtin->func_(args);
     }
 
     return NewError("Something funky with yer functions, mate!");

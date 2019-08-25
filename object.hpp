@@ -131,7 +131,7 @@ class Function : public Object
 };
 
 using BuiltInFunc = std::function<std::shared_ptr<object::Object>(
-    std::shared_ptr<object::Object>)>;
+    std::vector<std::shared_ptr<object::Object>>)>;
 
 class BuiltIn : public Object
 {
