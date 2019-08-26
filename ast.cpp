@@ -142,6 +142,40 @@ std::string CallExpression::String() const
     return ss.str();
 }
 
+std::string ArrayLiteral::String() const
+{
+    std::stringstream ss;
+
+    std::vector<std::string> elements;
+    for (auto e : elements_)
+        elements.push_back(e->String());
+
+    int elements_size = elements.size();
+    ss << "[";
+    for (int i = 0; i < elements_size; i++)
+    {
+        ss << elements[i];
+        if (i != elements_size - 1)
+            ss << ", ";
+    }
+    ss << "]";
+
+    return ss.str();
+}
+
+std::string IndexExpression::String() const
+{
+    std::stringstream ss;
+    ss << "(";
+    if (left_)
+        ss << left_->String();
+    ss << "[";
+    if (index_)
+        ss << index_->String();
+    ss << "])";
+    return ss.str();
+}
+
 std::string InfixExpression::String() const
 {
     std::stringstream ss;

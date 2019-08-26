@@ -22,7 +22,8 @@ enum class Precedence
     SUM,
     PRODUCT,
     PREFIX,
-    CALL
+    CALL,
+    INDEX
 };
 
 const std::unordered_map<token::TokenType, Precedence> precedences{
@@ -34,7 +35,8 @@ const std::unordered_map<token::TokenType, Precedence> precedences{
     {token::MINUS, Precedence::SUM},
     {token::SLASH, Precedence::PRODUCT},
     {token::ASTERISK, Precedence::PRODUCT},
-    {token::LPAREN, Precedence::CALL}};
+    {token::LPAREN, Precedence::CALL},
+    {token::LBRACKET, Precedence::INDEX}};
 
 class Parser
 {
@@ -60,13 +62,18 @@ class Parser
     std::shared_ptr<ast::Expression> ParseGroupedExpression();
     std::shared_ptr<ast::Expression> ParseIfExpression();
 
+    std::shared_ptr<ast::Expression>
+    ParseIndexExpression(std::shared_ptr<ast::Expression> left);
+
     std::shared_ptr<ast::Expression> ParseFunctionLiteral();
     std::shared_ptr<ast::Expression> ParseStringLiteral();
+    std::shared_ptr<ast::Expression> ParseArrayLiteral();
     std::vector<std::shared_ptr<ast::Identifier>> ParseFunctionParameters();
 
     std::shared_ptr<ast::Expression>
     ParseCallExpression(std::shared_ptr<ast::Expression> funct);
-    std::vector<std::shared_ptr<ast::Expression>> ParseCallArguments();
+    std::vector<std::shared_ptr<ast::Expression>>
+    ParseExpressionList(token::TokenType end);
 
     std::shared_ptr<ast::BlockStatement> ParseBlockStatement();
 

@@ -539,7 +539,10 @@ TEST_F(ParserTest, TestOperatorPrecedence)
         {"(5 + 5) * 2", "((5+5)*2)"},
         {"2/(5+5)", "(2/(5+5))"},
         {"-(5 + 5)", "(-(5+5))"},
-        {"!(true == true)", "(!(true==true))"}};
+        {"!(true == true)", "(!(true==true))"},
+        {"a * [1, 2, 3, 4][b * c] * d", "((a*([1, 2, 3, 4][(b*c)]))*d)"},
+        {"add(a * b[2], b[1], 2 * [1, 2][1])",
+         "add((a*(b[2])), (b[1]), (2*([1, 2][1])))"}};
 
     for (auto tt : tests)
     {
@@ -644,6 +647,72 @@ TEST_F(ParserTest, TestFunctionParameterParsing)
             TestLiteralExpression(fnlit->parameters_[i], tt.expected_params[i]);
         }
     }
+}
+
+TEST_F(ParserTest, TestParsingArray)
+{
+    std::string input = "[1, 2 * 2, 3 + 3]";
+    std::unique_ptr<lexer::Lexer> lex = std::make_unique<lexer::Lexer>(input);
+    std::unique_ptr<parser::Parser> parsley =
+        std::make_unique<parser::Parser>(std::move(lex));
+    std::shared_ptr<ast::Program> program = parsley->ParseProgram();
+    EXPECT_FALSE(parsley->CheckErrors());
+    EXPECT_EQ(1, program->statements_.size());
+    if (program->statements_.size() != 1)
+    {
+        for (auto s : program->statements_)
+            std::cout << s->String() << std::endl;
+    }
+    std::shared_ptr<ast::ExpressionStatement> stmt =
+        std::dynamic_pointer_cast<ast::ExpressionStatement>(
+            program->statements_[0]);
+    if (!stmt)
+        FAIL() << "program->statements_[0] is not an ExpressionStatement";
+
+    std::shared_ptr<ast::ArrayLiteral> array_lit =
+        std::dynamic_pointer_cast<ast::ArrayLiteral>(stmt->expression_);
+    if (!array_lit)
+        FAIL() << "Not an ArrayLiteral - got "
+               << typeid(&stmt->expression_).name();
+
+    if (array_lit->elements_.size() != 3)
+        FAIL() << "len(array.elements_) not 3. got="
+               << array_lit->elements_.size();
+
+    TestIntegerLiteral(array_lit->elements_[0], 1);
+    TestInfixExpression(array_lit->elements_[1], (int64_t)2, "*", (int64_t)2);
+    TestInfixExpression(array_lit->elements_[2], (int64_t)3, "+", (int64_t)3);
+}
+
+TEST_F(ParserTest, TestParsingIndexExpressions)
+{
+    std::string input = "myArray[1 + 1]";
+    std::unique_ptr<lexer::Lexer> lex = std::make_unique<lexer::Lexer>(input);
+    std::unique_ptr<parser::Parser> parsley =
+        std::make_unique<parser::Parser>(std::move(lex));
+    std::shared_ptr<ast::Program> program = parsley->ParseProgram();
+    EXPECT_FALSE(parsley->CheckErrors());
+    EXPECT_EQ(1, program->statements_.size());
+    if (program->statements_.size() != 1)
+    {
+        for (auto s : program->statements_)
+            std::cout << s->String() << std::endl;
+    }
+    std::shared_ptr<ast::ExpressionStatement> stmt =
+        std::dynamic_pointer_cast<ast::ExpressionStatement>(
+            program->statements_[0]);
+    if (!stmt)
+        FAIL() << "program->statements_[0] is not an ExpressionStatement";
+
+    std::shared_ptr<ast::IndexExpression> index_x =
+        std::dynamic_pointer_cast<ast::IndexExpression>(stmt->expression_);
+    if (!index_x)
+        FAIL() << "Not an IndexExpression - got "
+               << typeid(&stmt->expression_).name();
+
+    EXPECT_TRUE(TestIdentifier(index_x->left_, "myArray"));
+    EXPECT_TRUE(
+        TestInfixExpression(index_x->index_, (int64_t)1, "+", (int64_t)1));
 }
 
 TEST_F(ParserTest, TestCallExpression)

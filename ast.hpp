@@ -159,6 +159,43 @@ class CallExpression : public Expression
     std::vector<std::shared_ptr<Expression>> arguments_;
 };
 
+class ArrayLiteral : public Expression
+{
+  public:
+    ArrayLiteral() {}
+    explicit ArrayLiteral(Token token) : Expression{token} {}
+    ArrayLiteral(Token token, std::vector<std::shared_ptr<Expression>> elements)
+        : Expression{token}, elements_{elements}
+    {
+    }
+
+    std::string String() const override;
+
+  public:
+    std::vector<std::shared_ptr<Expression>> elements_;
+};
+
+class IndexExpression : public Expression
+{
+  public:
+    IndexExpression() {}
+    IndexExpression(Token token, std::shared_ptr<Expression> left)
+        : Expression{token}, left_{left}
+    {
+    }
+    IndexExpression(Token token, std::shared_ptr<Expression> left,
+                    std::shared_ptr<Expression> index)
+        : Expression{token}, left_{left}, index_{index}
+    {
+    }
+
+    std::string String() const override;
+
+  public:
+    std::shared_ptr<Expression> left_;
+    std::shared_ptr<Expression> index_;
+};
+
 ///////////////////////////////////////////////////////////////
 //////////////////////// STATEMENTS............. //////////////
 

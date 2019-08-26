@@ -158,7 +158,8 @@ static bool IsInfixOperator(token::TokenType type)
 {
     if (type == token::PLUS || type == token::MINUS || type == token::SLASH ||
         type == token::ASTERISK || type == token::EQ || type == token::NOT_EQ ||
-        type == token::LT || type == token::GT || type == token::LPAREN)
+        type == token::LT || type == token::GT || type == token::LPAREN ||
+        type == token::LBRACKET)
     {
         return true;
     }
@@ -183,6 +184,8 @@ std::shared_ptr<ast::Expression> Parser::ParseExpression(Precedence p)
             NextToken();
             if (cur_token_.type_ == token::LPAREN)
                 left_expr = ParseCallExpression(left_expr);
+            else if (cur_token_.type_ == token::LBRACKET)
+                left_expr = ParseIndexExpression(left_expr);
             else // these are the 'leds' (left denotation)
                 left_expr = ParseInfixExpression(left_expr);
         }
@@ -216,6 +219,8 @@ std::shared_ptr<ast::Expression> Parser::ParseForPrefixExpression()
         return ParseFunctionLiteral();
     else if (cur_token_.type_ == token::STRING)
         return ParseStringLiteral();
+    else if (cur_token_.type_ == token::LBRACKET)
+        return ParseArrayLiteral();
 
     std::cout << "No Prefix parser for " << cur_token_.type_ << std::endl;
     return nullptr;
@@ -230,6 +235,13 @@ std::shared_ptr<ast::Expression> Parser::ParseBoolean()
 {
     return std::make_shared<ast::BooleanExpression>(cur_token_,
                                                     CurTokenIs(token::TRUE));
+}
+
+std::shared_ptr<ast::Expression> Parser::ParseArrayLiteral()
+{
+    auto array_lit = std::make_shared<ast::ArrayLiteral>(cur_token_);
+    array_lit->elements_ = ParseExpressionList(token::RBRACKET);
+    return array_lit;
 }
 
 std::shared_ptr<ast::Expression> Parser::ParseIntegerLiteral()
@@ -397,34 +409,49 @@ Parser::ParseCallExpression(std::shared_ptr<ast::Expression> funct)
 {
     std::shared_ptr<ast::CallExpression> expr =
         std::make_shared<ast::CallExpression>(cur_token_, funct);
-    expr->arguments_ = ParseCallArguments();
+    expr->arguments_ = ParseExpressionList(token::RPAREN);
     return expr;
 }
 
-std::vector<std::shared_ptr<ast::Expression>> Parser::ParseCallArguments()
+std::shared_ptr<ast::Expression>
+Parser::ParseIndexExpression(std::shared_ptr<ast::Expression> left)
 {
-    std::vector<std::shared_ptr<ast::Expression>> arguments;
-    if (PeekTokenIs(token::RPAREN))
+    std::shared_ptr<ast::IndexExpression> expr =
+        std::make_shared<ast::IndexExpression>(cur_token_, left);
+    NextToken();
+    expr->index_ = ParseExpression(Precedence::LOWEST);
+    if (!ExpectPeek(token::RBRACKET))
+    {
+        return nullptr;
+    }
+    return expr;
+}
+
+std::vector<std::shared_ptr<ast::Expression>>
+Parser::ParseExpressionList(token::TokenType end)
+{
+    std::vector<std::shared_ptr<ast::Expression>> listy;
+    if (PeekTokenIs(end))
     {
         NextToken();
-        return arguments;
+        return listy;
     }
 
     NextToken();
-    arguments.push_back(ParseExpression(Precedence::LOWEST));
+    listy.push_back(ParseExpression(Precedence::LOWEST));
 
     while (PeekTokenIs(token::COMMA))
     {
         NextToken();
         NextToken();
-        arguments.push_back(ParseExpression(Precedence::LOWEST));
+        listy.push_back(ParseExpression(Precedence::LOWEST));
     }
 
-    if (!ExpectPeek(token::RPAREN))
+    if (!ExpectPeek(end))
     {
         return std::vector<std::shared_ptr<ast::Expression>>();
     }
 
-    return arguments;
+    return listy;
 }
 } // namespace parser
