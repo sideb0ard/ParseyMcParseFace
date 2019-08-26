@@ -44,10 +44,29 @@ std::string Function::Inspect()
         params << p->String();
         if (i < len - 1)
             params << ", ";
+        i++;
     }
     std::stringstream return_val;
     return_val << "fn(" << params.str() << ") {\n";
     return_val << body_->String() << "\n)";
+
+    return return_val.str();
+}
+
+std::string Array::Inspect()
+{
+    std::stringstream elems;
+    int len = elements_.size();
+    int i = 0;
+    for (auto &e : elements_)
+    {
+        elems << e->Inspect();
+        if (i < len - 1)
+            elems << ", ";
+        i++;
+    }
+    std::stringstream return_val;
+    return_val << "[" << elems.str() << "]";
 
     return return_val.str();
 }

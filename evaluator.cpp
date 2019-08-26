@@ -207,6 +207,17 @@ std::shared_ptr<object::Object> Eval(std::shared_ptr<ast::Node> node,
         return std::make_shared<object::String>(sliteral->value_);
     }
 
+    std::shared_ptr<ast::ArrayLiteral> aliteral =
+        std::dynamic_pointer_cast<ast::ArrayLiteral>(node);
+    if (aliteral)
+    {
+        std::vector<std::shared_ptr<object::Object>> elements =
+            EvalExpressions(aliteral->elements_, env);
+        if (elements.size() == 1 && IsError(elements[0]))
+            return elements[0];
+        return std::make_shared<object::Array>(elements);
+    }
+
     return NULLL;
 } // namespace
 

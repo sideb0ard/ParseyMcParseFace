@@ -359,4 +359,23 @@ TEST_F(EvaluatorTest, TestInBuiltFunctions)
     }
 }
 
+TEST_F(EvaluatorTest, TestArrayLiterals)
+{
+    auto input = "[1, 2 * 2, 3 + 3]";
+    std::shared_ptr<object::Object> evaluated = TestEval(input);
+    std::shared_ptr<object::Array> array_obj =
+        std::dynamic_pointer_cast<object::Array>(evaluated);
+    if (!array_obj)
+    {
+        FAIL() << "Object is not an Array. Got " << typeid(evaluated).name()
+               << "\n\n";
+    }
+
+    ASSERT_EQ(array_obj->elements_.size(), 3);
+
+    EXPECT_TRUE(TestIntegerObject(array_obj->elements_[0], 1));
+    EXPECT_TRUE(TestIntegerObject(array_obj->elements_[1], 4));
+    EXPECT_TRUE(TestIntegerObject(array_obj->elements_[2], 6));
+}
+
 } // namespace

@@ -25,6 +25,8 @@ constexpr char STRING_OBJ[] = "STRING";
 
 constexpr char BUILTIN_OBJ[] = "BUILTIN";
 
+constexpr char ARRAY_OBJ[] = "ARRAY";
+
 using ObjectType = std::string;
 
 class Object
@@ -44,6 +46,18 @@ class Integer : public Object
 
   public:
     int64_t value_;
+};
+
+class Array : public Object
+{
+  public:
+    explicit Array(std::vector<std::shared_ptr<Object>> elements)
+        : elements_{elements} {};
+    ObjectType Type() override { return ARRAY_OBJ; }
+    std::string Inspect() override;
+
+  public:
+    std::vector<std::shared_ptr<Object>> elements_;
 };
 
 class Boolean : public Object
