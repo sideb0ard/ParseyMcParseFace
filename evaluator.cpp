@@ -40,16 +40,26 @@ std::unordered_map<std::string, std::shared_ptr<object::BuiltIn>> built_ins = {
                     if (input.size() != 1)
                         return evaluator::NewError(
                             "Too many arguments for len - can only accept one");
+
                     std::shared_ptr<object::String> str_obj =
                         std::dynamic_pointer_cast<object::String>(input[0]);
-                    if (!str_obj)
+                    if (str_obj)
                     {
-                        return evaluator::NewError(
-                            "argument to `len` not supported, got %s",
-                            input[0]->Type());
+                        return std::make_shared<object::Integer>(
+                            str_obj->value_.size());
                     }
-                    return std::make_shared<object::Integer>(
-                        str_obj->value_.size());
+
+                    std::shared_ptr<object::Array> array_obj =
+                        std::dynamic_pointer_cast<object::Array>(input[0]);
+                    if (array_obj)
+                    {
+                        return std::make_shared<object::Integer>(
+                            array_obj->elements_.size());
+                    }
+
+                    return evaluator::NewError(
+                        "argument to `len` not supported, got %s",
+                        input[0]->Type());
                 })},
     {"jobbie",
      std::make_shared<object::BuiltIn>(
@@ -218,8 +228,54 @@ std::shared_ptr<object::Object> Eval(std::shared_ptr<ast::Node> node,
         return std::make_shared<object::Array>(elements);
     }
 
+    std::shared_ptr<ast::IndexExpression> index_x =
+        std::dynamic_pointer_cast<ast::IndexExpression>(node);
+    if (index_x)
+    {
+        std::shared_ptr<object::Object> left = Eval(index_x->left_, env);
+        if (IsError(left))
+            return left;
+
+        std::shared_ptr<object::Object> index = Eval(index_x->index_, env);
+        if (IsError(index))
+            return index;
+
+        return EvalIndexExpression(left, index);
+    }
+
     return NULLL;
-} // namespace
+}
+
+std::shared_ptr<object::Object>
+EvalIndexExpression(std::shared_ptr<object::Object> left,
+                    std::shared_ptr<object::Object> index)
+{
+    if (left->Type() == object::ARRAY_OBJ &&
+        index->Type() == object::INTEGER_OBJ)
+        return EvalArrayIndexExpression(left, index);
+    return NewError("index operation not supported: %s", left->Type());
+}
+
+std::shared_ptr<object::Object>
+EvalArrayIndexExpression(std::shared_ptr<object::Object> array_obj,
+                         std::shared_ptr<object::Object> index)
+{
+    std::shared_ptr<object::Array> my_array =
+        std::dynamic_pointer_cast<object::Array>(array_obj);
+
+    std::shared_ptr<object::Integer> int_obj =
+        std::dynamic_pointer_cast<object::Integer>(index);
+    if (my_array && int_obj)
+    {
+        int idx = int_obj->value_;
+        int num_elems = my_array->elements_.size();
+        if (idx >= 0 && idx < num_elems)
+            return my_array->elements_[idx];
+        else
+            return NULLL;
+    }
+    return NewError("Couldn't unpack yer Array OBJ!");
+}
 
 std::shared_ptr<object::Object>
 EvalPrefixExpression(std::string op, std::shared_ptr<object::Object> right)

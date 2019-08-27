@@ -57,6 +57,14 @@ std::shared_ptr<object::Object>
 EvalIdentifier(std::shared_ptr<ast::Identifier> ident,
                std::shared_ptr<object::Environment> env);
 
+std::shared_ptr<object::Object>
+EvalIndexExpression(std::shared_ptr<object::Object> left,
+                    std::shared_ptr<object::Object> index);
+
+std::shared_ptr<object::Object>
+EvalArrayIndexExpression(std::shared_ptr<object::Object> left,
+                         std::shared_ptr<object::Object> index);
+
 std::vector<std::shared_ptr<object::Object>>
 EvalExpressions(std::vector<std::shared_ptr<ast::Expression>> exps,
                 std::shared_ptr<object::Environment> env);
