@@ -410,4 +410,100 @@ TEST_F(EvaluatorTest, TestArrayIndexExpressions)
     }
 }
 
+TEST_F(EvaluatorTest, TestBuiltInFunctions)
+{
+    struct TestCase
+    {
+        std::string input;
+        int64_t expected;
+    };
+    std::vector<TestCase> tests{
+        {R"(len(""))", 0},
+        {R"(len("four"))", 4},
+        {R"(len("hello world"))", 11},
+        {R"(len([1, 2, 3]))", 3},
+        {R"(len([]))", 0},
+        {R"(head([1, 2, 3]))", 1},
+        {R"(last([1, 2, 3]))", 3},
+    };
+
+    for (auto &tt : tests)
+    {
+        auto evaluated = TestEval(tt.input);
+        EXPECT_TRUE(TestIntegerObject(evaluated, tt.expected));
+    }
+
+    /////
+    /////////////////////////////
+
+    struct TestCaseString
+    {
+        std::string input;
+        std::string expected;
+    };
+
+    std::vector<TestCaseString> teststrings{
+        {R"(len(1))", "argument to `len` not supported, got INTEGER"},
+        {R"(len("one", "two"))",
+         "Too many arguments for len - can only accept one"},
+        {R"(head(1))", "argument to `head` must be an array - got INTEGER"},
+        {R"(last(1))", "argument to `last` must be an array - got INTEGER"},
+        {R"(push(1, 1))", "argument to `push` must be an array - got INTEGER"},
+    };
+
+    for (auto &tt : teststrings)
+    {
+        auto evaluated = TestEval(tt.input);
+        std::shared_ptr<object::Error> err_obj =
+            std::dynamic_pointer_cast<object::Error>(evaluated);
+        if (!err_obj)
+            FAIL() << "Object is not Error - got " << typeid(evaluated).name();
+
+        EXPECT_EQ(tt.expected, err_obj->message_);
+    }
+
+    ////////////////////////////
+
+    struct TestCaseArray
+    {
+        std::string input;
+        std::vector<int64_t> expected;
+    };
+
+    std::vector<TestCaseArray> test_arrays{
+        {R"(tail([1, 2, 3]))", {2, 3}},
+        {R"(push([], 1))", {1}},
+    };
+
+    for (auto &tt : test_arrays)
+    {
+        auto evaluated = TestEval(tt.input);
+        std::shared_ptr<object::Array> arr_obj =
+            std::dynamic_pointer_cast<object::Array>(evaluated);
+        if (!arr_obj)
+            FAIL() << "Object is not Array - got " << typeid(evaluated).name();
+
+        ASSERT_EQ(tt.expected.size(), arr_obj->elements_.size());
+        int elems_size = arr_obj->elements_.size();
+        for (int i = 0; i < elems_size; i++)
+            TestIntegerObject(arr_obj->elements_[i], tt.expected[i]);
+    }
+
+    /////////////////////////////
+
+    std::vector<std::string> nullTests{
+        R"(head([]))",
+        R"(tail([]))",
+        R"(last([]))",
+        // R"(puts("hello", "world!"))",
+    };
+
+    for (auto tt : nullTests)
+    {
+        std::cout << "\nTesting! input: " << tt << std::endl;
+        auto evaluated = TestEval(tt);
+        EXPECT_EQ(evaluated, evaluator::NULLL);
+    }
+}
+
 } // namespace
