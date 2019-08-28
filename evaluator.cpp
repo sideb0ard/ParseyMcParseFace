@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "ast.hpp"
+#include "builtins.hpp"
 #include "evaluator.hpp"
 #include "object.hpp"
 
@@ -32,45 +33,6 @@ bool IsError(std::shared_ptr<object::Object> obj)
     }
     return false;
 }
-
-std::unordered_map<std::string, std::shared_ptr<object::BuiltIn>> built_ins = {
-    {"len", std::make_shared<object::BuiltIn>(
-                [](std::vector<std::shared_ptr<object::Object>> input)
-                    -> std::shared_ptr<object::Object> {
-                    if (input.size() != 1)
-                        return evaluator::NewError(
-                            "Too many arguments for len - can only accept one");
-
-                    std::shared_ptr<object::String> str_obj =
-                        std::dynamic_pointer_cast<object::String>(input[0]);
-                    if (str_obj)
-                    {
-                        return std::make_shared<object::Integer>(
-                            str_obj->value_.size());
-                    }
-
-                    std::shared_ptr<object::Array> array_obj =
-                        std::dynamic_pointer_cast<object::Array>(input[0]);
-                    if (array_obj)
-                    {
-                        return std::make_shared<object::Integer>(
-                            array_obj->elements_.size());
-                    }
-
-                    return evaluator::NewError(
-                        "argument to `len` not supported, got %s",
-                        input[0]->Type());
-                })},
-    {"jobbie",
-     std::make_shared<object::BuiltIn>(
-         [](std::vector<std::shared_ptr<object::Object>> input)
-             -> std::shared_ptr<object::Object> {
-             if (input.size() != 2)
-                 return evaluator::NewError(
-                     "Not correct amount of arguments for jobbie - need two");
-             std::cout << "Yolde! two param BuiltIn!\n";
-             return std::make_shared<object::Integer>(74);
-         })}};
 
 } // namespace
 
@@ -460,7 +422,7 @@ EvalIdentifier(std::shared_ptr<ast::Identifier> ident,
     if (val)
         return val;
 
-    auto builtin = built_ins[ident->value_];
+    auto builtin = builtin::built_ins[ident->value_];
     if (builtin)
         return builtin;
 
