@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "token.hpp"
@@ -173,6 +174,19 @@ class ArrayLiteral : public Expression
 
   public:
     std::vector<std::shared_ptr<Expression>> elements_;
+};
+
+class HashLiteral : public Expression
+{
+  public:
+    HashLiteral() {}
+    explicit HashLiteral(Token token) : Expression{token} {}
+
+    std::string String() const override;
+
+  public:
+    std::unordered_map<std::shared_ptr<Expression>, std::shared_ptr<Expression>>
+        pairs_;
 };
 
 class IndexExpression : public Expression

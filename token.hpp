@@ -24,6 +24,7 @@ const TokenType LT = "<";
 const TokenType GT = ">";
 
 const TokenType COMMA = ",";
+const TokenType COLON = ":";
 const TokenType SEMICOLON = ";";
 
 const TokenType LPAREN = "(";

@@ -175,6 +175,10 @@ token::Token Lexer::NextToken()
         tok.type_ = token::RBRACKET;
         tok.literal_ = current_char_;
         break;
+    case (':'):
+        tok.type_ = token::COLON;
+        tok.literal_ = current_char_;
+        break;
     case ('"'):
         tok.type_ = token::STRING;
         tok.literal_ = ReadString();

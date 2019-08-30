@@ -68,6 +68,7 @@ class Parser
     std::shared_ptr<ast::Expression> ParseFunctionLiteral();
     std::shared_ptr<ast::Expression> ParseStringLiteral();
     std::shared_ptr<ast::Expression> ParseArrayLiteral();
+    std::shared_ptr<ast::Expression> ParseHashLiteral();
     std::vector<std::shared_ptr<ast::Identifier>> ParseFunctionParameters();
 
     std::shared_ptr<ast::Expression>

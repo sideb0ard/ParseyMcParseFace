@@ -147,7 +147,7 @@ std::string ArrayLiteral::String() const
     std::stringstream ss;
 
     std::vector<std::string> elements;
-    for (auto e : elements_)
+    for (auto const &e : elements_)
         elements.push_back(e->String());
 
     int elements_size = elements.size();
@@ -159,6 +159,27 @@ std::string ArrayLiteral::String() const
             ss << ", ";
     }
     ss << "]";
+
+    return ss.str();
+}
+
+std::string HashLiteral::String() const
+{
+    std::stringstream ss;
+
+    std::vector<std::string> pairs;
+    for (auto const &it : pairs_)
+        pairs.push_back(it.first->String() + ":" + it.second->String());
+
+    int pairs_size = pairs.size();
+    ss << "{";
+    for (int i = 0; i < pairs_size; i++)
+    {
+        ss << pairs[i];
+        if (i != pairs_size - 1)
+            ss << ", ";
+    }
+    ss << "}";
 
     return ss.str();
 }

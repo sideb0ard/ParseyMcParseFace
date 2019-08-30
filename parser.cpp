@@ -221,6 +221,8 @@ std::shared_ptr<ast::Expression> Parser::ParseForPrefixExpression()
         return ParseStringLiteral();
     else if (cur_token_.type_ == token::LBRACKET)
         return ParseArrayLiteral();
+    else if (cur_token_.type_ == token::LBRACE)
+        return ParseHashLiteral();
 
     std::cout << "No Prefix parser for " << cur_token_.type_ << std::endl;
     return nullptr;
@@ -242,6 +244,36 @@ std::shared_ptr<ast::Expression> Parser::ParseArrayLiteral()
     auto array_lit = std::make_shared<ast::ArrayLiteral>(cur_token_);
     array_lit->elements_ = ParseExpressionList(token::RBRACKET);
     return array_lit;
+}
+
+std::shared_ptr<ast::Expression> Parser::ParseHashLiteral()
+{
+    auto hash_lit = std::make_shared<ast::HashLiteral>(cur_token_);
+
+    while (!PeekTokenIs(token::RBRACE))
+    {
+        NextToken();
+        std::shared_ptr<ast::Expression> key =
+            ParseExpression(Precedence::LOWEST);
+
+        if (!ExpectPeek(token::COLON))
+            return nullptr;
+
+        NextToken();
+        std::shared_ptr<ast::Expression> val =
+            ParseExpression(Precedence::LOWEST);
+
+        hash_lit->pairs_.insert({key, val});
+
+        if (!PeekTokenIs(token::RBRACE) && !ExpectPeek(token::COMMA))
+            return nullptr;
+    }
+    if (!ExpectPeek(token::RBRACE))
+    {
+        return nullptr;
+    }
+
+    return hash_lit;
 }
 
 std::shared_ptr<ast::Expression> Parser::ParseIntegerLiteral()

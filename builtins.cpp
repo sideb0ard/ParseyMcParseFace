@@ -1,12 +1,13 @@
 #include "builtins.hpp"
 
 #include <algorithm>
+#include <iostream>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <sstream>
-#include <iostream>
+
 #include "evaluator.hpp"
 
 namespace builtin
@@ -82,15 +83,14 @@ std::unordered_map<std::string, std::shared_ptr<object::BuiltIn>> built_ins = {
              int len_elems = array_obj->elements_.size();
              if (len_elems > 0)
              {
-             auto return_array = std::make_shared<object::Array>(
-                 std::vector<std::shared_ptr<object::Object>>());
+                 auto return_array = std::make_shared<object::Array>(
+                     std::vector<std::shared_ptr<object::Object>>());
 
                  for (int i = 1; i < len_elems; i++)
                      return_array->elements_.push_back(array_obj->elements_[i]);
-                return return_array;
+                 return return_array;
              }
              return evaluator::NULLL;
-
          })},
     {"last",
      std::make_shared<object::BuiltIn>(
@@ -145,20 +145,19 @@ std::unordered_map<std::string, std::shared_ptr<object::BuiltIn>> built_ins = {
 
              return return_array;
          })},
-    {"puts",
-     std::make_shared<object::BuiltIn>(
-         [](std::vector<std::shared_ptr<object::Object>> args)
-             -> std::shared_ptr<object::Object> {
+    {"puts", std::make_shared<object::BuiltIn>(
+                 [](std::vector<std::shared_ptr<object::Object>> args)
+                     -> std::shared_ptr<object::Object> {
+                     std::stringstream out;
+                     for (auto &o : args)
+                     {
+                         out << o->Inspect();
+                     }
 
-               std::stringstream out;
-               for (auto& o : args) {
-                 out << o->Inspect();
-               }
+                     std::cout << out.str() << std::endl;
 
-               std::cout << out.str() << std::endl;
-
-               return evaluator::NULLL;
-             })},
+                     return evaluator::NULLL;
+                 })},
 };
 
 } // namespace builtin

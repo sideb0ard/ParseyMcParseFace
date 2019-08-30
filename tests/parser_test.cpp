@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <type_traits>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -12,11 +13,6 @@
 #include "../lexer.hpp"
 #include "../parser.hpp"
 #include "../token.hpp"
-
-// helper type for the visitor #3
-template <class T> struct always_false : std::false_type
-{
-};
 
 namespace
 {
@@ -682,6 +678,144 @@ TEST_F(ParserTest, TestParsingArray)
     TestIntegerLiteral(array_lit->elements_[0], 1);
     TestInfixExpression(array_lit->elements_[1], (int64_t)2, "*", (int64_t)2);
     TestInfixExpression(array_lit->elements_[2], (int64_t)3, "+", (int64_t)3);
+}
+
+TEST_F(ParserTest, TestParsingHashLiteral)
+{
+    std::string input = R"({"one": 1, "two": 2, "three": 3})";
+    std::unique_ptr<lexer::Lexer> lex = std::make_unique<lexer::Lexer>(input);
+    std::unique_ptr<parser::Parser> parsley =
+        std::make_unique<parser::Parser>(std::move(lex));
+    std::shared_ptr<ast::Program> program = parsley->ParseProgram();
+    EXPECT_FALSE(parsley->CheckErrors());
+    EXPECT_EQ(1, program->statements_.size());
+    if (program->statements_.size() != 1)
+    {
+        for (auto s : program->statements_)
+            std::cout << s->String() << std::endl;
+    }
+    std::shared_ptr<ast::ExpressionStatement> stmt =
+        std::dynamic_pointer_cast<ast::ExpressionStatement>(
+            program->statements_[0]);
+    if (!stmt)
+        FAIL() << "program->statements_[0] is not an ExpressionStatement";
+
+    std::shared_ptr<ast::HashLiteral> hash_lit =
+        std::dynamic_pointer_cast<ast::HashLiteral>(stmt->expression_);
+    if (!hash_lit)
+        FAIL() << "Not a HashLiteral - got "
+               << typeid(&stmt->expression_).name();
+
+    if (hash_lit->pairs_.size() != 3)
+        FAIL() << "len(hash.pairs_) not 3. got=" << hash_lit->pairs_.size();
+
+    std::unordered_map<std::string, int> expected = {
+        {"one", 1}, {"two", 2}, {"three", 3}};
+
+    for (auto &it : hash_lit->pairs_)
+    {
+        std::shared_ptr<ast::StringLiteral> string_lit =
+            std::dynamic_pointer_cast<ast::StringLiteral>(it.first);
+        if (!string_lit)
+            FAIL() << "Not a StringLiteral - got " << typeid(it.first).name();
+
+        int expected_value = expected.at(string_lit->String());
+
+        TestIntegerLiteral(it.second, expected_value);
+    }
+}
+
+TEST_F(ParserTest, TestParsingEmptyHash)
+{
+    std::string input = R"({})";
+    std::unique_ptr<lexer::Lexer> lex = std::make_unique<lexer::Lexer>(input);
+    std::unique_ptr<parser::Parser> parsley =
+        std::make_unique<parser::Parser>(std::move(lex));
+    std::shared_ptr<ast::Program> program = parsley->ParseProgram();
+    EXPECT_FALSE(parsley->CheckErrors());
+    EXPECT_EQ(1, program->statements_.size());
+    if (program->statements_.size() != 1)
+    {
+        for (auto s : program->statements_)
+            std::cout << s->String() << std::endl;
+    }
+    std::shared_ptr<ast::ExpressionStatement> stmt =
+        std::dynamic_pointer_cast<ast::ExpressionStatement>(
+            program->statements_[0]);
+    if (!stmt)
+        FAIL() << "program->statements_[0] is not an ExpressionStatement";
+
+    std::shared_ptr<ast::HashLiteral> hash_lit =
+        std::dynamic_pointer_cast<ast::HashLiteral>(stmt->expression_);
+    if (!hash_lit)
+        FAIL() << "Not a HashLiteral - got "
+               << typeid(&stmt->expression_).name();
+
+    if (hash_lit->pairs_.size() != 0)
+        FAIL() << "hash.pairs has wrong length. got="
+               << hash_lit->pairs_.size();
+}
+
+TEST_F(ParserTest, TestParsingHashLiteralsWithExpressions)
+{
+    std::string input = R"({"one": 0 + 1, "two": 10 - 8, "three": 15 / 5})";
+    std::unique_ptr<lexer::Lexer> lex = std::make_unique<lexer::Lexer>(input);
+    std::unique_ptr<parser::Parser> parsley =
+        std::make_unique<parser::Parser>(std::move(lex));
+    std::shared_ptr<ast::Program> program = parsley->ParseProgram();
+    EXPECT_FALSE(parsley->CheckErrors());
+    EXPECT_EQ(1, program->statements_.size());
+    if (program->statements_.size() != 1)
+    {
+        for (auto s : program->statements_)
+            std::cout << s->String() << std::endl;
+    }
+    std::shared_ptr<ast::ExpressionStatement> stmt =
+        std::dynamic_pointer_cast<ast::ExpressionStatement>(
+            program->statements_[0]);
+    if (!stmt)
+        FAIL() << "program->statements_[0] is not an ExpressionStatement";
+
+    std::shared_ptr<ast::HashLiteral> hash_lit =
+        std::dynamic_pointer_cast<ast::HashLiteral>(stmt->expression_);
+    if (!hash_lit)
+        FAIL() << "Not a HashLiteral - got "
+               << typeid(&stmt->expression_).name();
+
+    if (hash_lit->pairs_.size() != 3)
+        FAIL() << "hash.pairs has wrong length. got="
+               << hash_lit->pairs_.size();
+
+    std::unordered_map<std::string,
+                       std::function<void(std::shared_ptr<ast::Expression>)>>
+        tests{
+            {"one",
+             [](std::shared_ptr<ast::Expression> e) {
+                 TestInfixExpression(e, (int64_t)0, "+", (int64_t)1);
+             }},
+
+            {"two",
+             [](std::shared_ptr<ast::Expression> e) {
+                 TestInfixExpression(e, (int64_t)10, "-", (int64_t)8);
+             }},
+
+            {"three",
+             [](std::shared_ptr<ast::Expression> e) {
+                 TestInfixExpression(e, (int64_t)15, "/", (int64_t)5);
+             }},
+        };
+
+    for (auto &it : hash_lit->pairs_)
+    {
+        auto lit = std::dynamic_pointer_cast<ast::StringLiteral>(it.first);
+        if (!lit)
+            FAIL() << "Key not  a StringLiteral - got "
+                   << typeid(it.first).name();
+
+        auto test_func = tests[lit->String()];
+
+        test_func(it.second);
+    }
 }
 
 TEST_F(ParserTest, TestParsingIndexExpressions)
