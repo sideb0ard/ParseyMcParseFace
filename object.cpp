@@ -3,6 +3,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <vector>
 
 namespace object
 {
@@ -13,7 +14,30 @@ std::string Integer::Inspect()
     val << value_;
     return val.str();
 }
+
+bool operator<(HashKey const &lhs, HashKey const &rhs)
+{
+    if (lhs.Type() < rhs.Type())
+        return true;
+    else if (lhs.Type() > rhs.Type())
+        return false;
+    else // same type - compare values
+    {
+
+        if (lhs.Value() < rhs.Value())
+            return true;
+        else if (lhs.Value() > rhs.Value())
+            return false;
+        else // value_ is equal
+            return false;
+    }
+}
+
 ObjectType Integer::Type() { return INTEGER_OBJ; }
+object::HashKey Integer::HashKey()
+{
+    return object::HashKey(Type(), (uint64_t)value_);
+}
 
 std::string Boolean::Inspect()
 {
@@ -22,6 +46,20 @@ std::string Boolean::Inspect()
     return val.str();
 }
 ObjectType Boolean::Type() { return BOOLEAN_OBJ; }
+object::HashKey Boolean::HashKey()
+{
+    uint64_t val = 0;
+    if (value_)
+        val = 1;
+
+    return object::HashKey(Type(), (uint64_t)val);
+}
+
+object::HashKey String::HashKey()
+{
+    std::hash<std::string> hasher;
+    return object::HashKey(Type(), (uint64_t)hasher(value_));
+}
 
 std::string Null::Inspect() { return "null"; }
 ObjectType Null::Type() { return NULL_OBJ; }
@@ -88,6 +126,29 @@ std::shared_ptr<Object> Environment::Set(std::string key,
 {
     store_[key] = val;
     return val;
+}
+
+std::string Hash::Inspect()
+{
+    std::stringstream out;
+    std::vector<std::string> pairs;
+    for (auto const &it : pairs_)
+    {
+        pairs.push_back(it.second.key_->Inspect() + ": " +
+                        it.second.value_->Inspect());
+    }
+
+    int pairs_size = pairs.size();
+    out << "{";
+    for (int i = 0; i < pairs_size; i++)
+    {
+        out << pairs[i];
+        if (i != pairs_size - 1)
+            out << ", ";
+    }
+    out << "}";
+
+    return out.str();
 }
 
 } // namespace object

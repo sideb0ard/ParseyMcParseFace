@@ -1,4 +1,5 @@
 #include <iostream>
+#include <map>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -32,6 +33,34 @@ bool IsError(std::shared_ptr<object::Object> obj)
         return obj->Type() == object::ERROR_OBJ;
     }
     return false;
+}
+
+bool IsHashable(std::shared_ptr<object::Object> obj)
+{
+    if (obj->Type() == object::BOOLEAN_OBJ ||
+        obj->Type() == object::INTEGER_OBJ || obj->Type() == object::STRING_OBJ)
+        return true;
+    return false;
+}
+
+object::HashKey MakeHashKey(std::shared_ptr<object::Object> hashkey)
+{
+    std::shared_ptr<object::Boolean> hash_key_bool =
+        std::dynamic_pointer_cast<object::Boolean>(hashkey);
+    if (hash_key_bool)
+        return hash_key_bool->HashKey();
+
+    std::shared_ptr<object::Integer> hash_key_int =
+        std::dynamic_pointer_cast<object::Integer>(hashkey);
+    if (hash_key_int)
+        return hash_key_int->HashKey();
+
+    std::shared_ptr<object::String> hash_key_string =
+        std::dynamic_pointer_cast<object::String>(hashkey);
+    if (hash_key_string)
+        return hash_key_string->HashKey();
+
+    return object::HashKey{};
 }
 
 } // namespace
@@ -203,6 +232,13 @@ std::shared_ptr<object::Object> Eval(std::shared_ptr<ast::Node> node,
             return index;
 
         return EvalIndexExpression(left, index);
+    }
+
+    std::shared_ptr<ast::HashLiteral> hash_lit =
+        std::dynamic_pointer_cast<ast::HashLiteral>(node);
+    if (hash_lit)
+    {
+        return EvalHashLiteral(hash_lit, env);
     }
 
     return NULLL;
@@ -427,6 +463,32 @@ EvalIdentifier(std::shared_ptr<ast::Identifier> ident,
         return builtin;
 
     return NewError("identifier not found: %s", ident->value_);
+}
+
+std::shared_ptr<object::Object>
+EvalHashLiteral(std::shared_ptr<ast::HashLiteral> hash_literal,
+                std::shared_ptr<object::Environment> env)
+{
+    std::map<object::HashKey, object::HashPair> pairs;
+    for (auto const &it : hash_literal->pairs_)
+    {
+        std::shared_ptr<object::Object> hashkey = Eval(it.first, env);
+        if (IsError(hashkey))
+            return hashkey;
+
+        if (!IsHashable(hashkey))
+            return NewError("unusable as hash key: %s", hashkey->Type());
+        object::HashKey hashed = MakeHashKey(hashkey);
+
+        std::shared_ptr<object::Object> val = Eval(it.second, env);
+        if (IsError(val))
+            return val;
+
+        pairs.insert(std::pair<object::HashKey, object::HashPair>(
+            hashed, object::HashPair{hashkey, val}));
+    }
+
+    return std::make_shared<object::Hash>(pairs);
 }
 
 std::vector<std::shared_ptr<object::Object>>

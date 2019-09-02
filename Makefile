@@ -20,6 +20,7 @@ OBJ = $(filter-out parsey.cpp, $(wildcard *.cpp))
 LEXER_TESTS = tests/lexer_test.cpp
 PARSER_TESTS = tests/parser_test.cpp
 EVAL_TESTS = tests/evaluator_test.cpp
+OBJECT_TESTS = tests/object_test.cpp
 INC=-I${HOME}/Code/range-v3/include/
 
 CTAGS:
@@ -43,7 +44,7 @@ $(TARGET): $(MAIN) $(OBJ)
 
 
 # $(TEST_TARGET): $(PARSER_TESTS) $(EVAL_TESTS) $(LEXER_TESTS) $(GTEST_LIBS) $(OBJ)
-$(TEST_TARGET): $(PARSER_TESTS) $(LEXER_TESTS) $(EVAL_TESTS) $(GTEST_LIBS) $(OBJ)
+$(TEST_TARGET): $(PARSER_TESTS) $(LEXER_TESTS) $(EVAL_TESTS) $(OBJECT_TESTS) $(GTEST_LIBS) $(OBJ)
 	$(CTAGS)
 	$(CC) $(CPPFLAGS) $(INC) $(CXXFLAGS) -L$(GTEST_LIB_DIR) -lgtest -lpthread $^ -o $@
 

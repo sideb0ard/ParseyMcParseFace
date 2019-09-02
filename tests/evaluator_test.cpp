@@ -1,6 +1,7 @@
 #include <variant>
 
 #include <iostream>
+#include <map>
 #include <memory>
 #include <string>
 #include <type_traits>
@@ -503,6 +504,53 @@ TEST_F(EvaluatorTest, TestBuiltInFunctions)
         std::cout << "\nTesting! input: " << tt << std::endl;
         auto evaluated = TestEval(tt);
         EXPECT_EQ(evaluated, evaluator::NULLL);
+    }
+}
+
+TEST_F(EvaluatorTest, TestHashLiterals)
+{
+    std::string input = R"(let two = "two";
+{
+    "one": 10 - 9,
+    two: 1 + 1,
+    "thr" + "ee": 6 / 2,
+    4: 4,
+    true: 5,
+    false: 6
+})";
+
+    std::shared_ptr<object::Object> evaluated = TestEval(input);
+    std::shared_ptr<object::Hash> hsh =
+        std::dynamic_pointer_cast<object::Hash>(evaluated);
+    if (!hsh)
+        FAIL() << "Object is not a Hash. Got " << typeid(evaluated).name()
+               << "\n\n";
+
+    std::map<object::HashKey, int64_t> expected{
+        {object::String("one").HashKey(), 1},
+        {object::String("two").HashKey(), 2},
+        {object::String("three").HashKey(), 3},
+        {object::Integer(4).HashKey(), 4},
+        {evaluator::TRUE->HashKey(), 5},
+        {evaluator::FALSE->HashKey(), 6},
+    };
+
+    if (hsh->pairs_.size() != expected.size())
+    {
+        hsh->Inspect();
+        FAIL() << "Hash has wrong num of pairs. Got " << hsh->pairs_.size();
+    }
+
+    for (auto &e : expected)
+    {
+        auto expected_key = e.first;
+        auto expected_value = e.second;
+
+        auto p = hsh->pairs_.find(expected_key);
+        if (p == hsh->pairs_.end())
+            FAIL() << "No pair found for key in pairs...";
+
+        TestIntegerObject(p->second.value_, expected_value);
     }
 }
 

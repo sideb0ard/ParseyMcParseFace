@@ -1,9 +1,9 @@
 #pragma once
 
-#include <iostream>
+#include <functional>
+#include <map>
 #include <memory>
 #include <string>
-#include <functional>
 #include <unordered_map>
 #include <vector>
 
@@ -28,7 +28,32 @@ constexpr char BUILTIN_OBJ[] = "BUILTIN";
 
 constexpr char ARRAY_OBJ[] = "ARRAY";
 
+constexpr char HASH_OBJ[] = "HASH";
+
 using ObjectType = std::string;
+
+class HashKey
+{
+  public:
+    HashKey() = default;
+    HashKey(ObjectType type, uint64_t value) : type_{type}, value_{value} {};
+    uint64_t Value() const { return value_; }
+    std::string Type() const { return type_; }
+    bool operator==(const HashKey &hk) const
+    {
+        return hk.type_ == type_ && hk.value_ == value_;
+    }
+    bool operator!=(const HashKey &hk) const
+    {
+        return hk.type_ != type_ || hk.value_ != value_;
+    }
+
+  private:
+    ObjectType type_;
+    uint64_t value_;
+};
+
+bool operator<(HashKey const &lhs, HashKey const &rhs);
 
 class Object
 {
@@ -44,6 +69,7 @@ class Integer : public Object
     explicit Integer(int64_t val) : value_{val} {};
     ObjectType Type() override;
     std::string Inspect() override;
+    HashKey HashKey();
 
   public:
     int64_t value_;
@@ -67,6 +93,7 @@ class Boolean : public Object
     explicit Boolean(bool val) : value_{val} {};
     ObjectType Type() override;
     std::string Inspect() override;
+    HashKey HashKey();
 
   public:
     bool value_;
@@ -78,6 +105,7 @@ class String : public Object
     explicit String(std::string val) : value_{val} {};
     ObjectType Type() override { return STRING_OBJ; }
     std::string Inspect() override { return value_; }
+    HashKey HashKey();
 
   public:
     std::string value_;
@@ -158,6 +186,32 @@ class BuiltIn : public Object
 
   public:
     BuiltInFunc func_;
+};
+
+class HashPair
+{
+  public:
+    HashPair(std::shared_ptr<Object> key, std::shared_ptr<Object> value)
+        : key_{key}, value_{value}
+    {
+    }
+
+  public:
+    std::shared_ptr<Object> key_;
+    std::shared_ptr<Object> value_;
+};
+
+class Hash : public Object
+{
+  public:
+    Hash() = default;
+    explicit Hash(std::map<HashKey, HashPair> pairs) : pairs_{pairs} {}
+    ~Hash() = default;
+    ObjectType Type() override { return HASH_OBJ; }
+    std::string Inspect() override;
+
+  public:
+    std::map<HashKey, HashPair> pairs_;
 };
 
 } // namespace object

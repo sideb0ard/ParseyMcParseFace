@@ -58,6 +58,10 @@ EvalIdentifier(std::shared_ptr<ast::Identifier> ident,
                std::shared_ptr<object::Environment> env);
 
 std::shared_ptr<object::Object>
+EvalHashLiteral(std::shared_ptr<ast::HashLiteral> hash_literal,
+                std::shared_ptr<object::Environment> env);
+
+std::shared_ptr<object::Object>
 EvalIndexExpression(std::shared_ptr<object::Object> left,
                     std::shared_ptr<object::Object> index);
 
