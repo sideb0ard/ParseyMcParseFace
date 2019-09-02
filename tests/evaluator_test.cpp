@@ -554,4 +554,35 @@ TEST_F(EvaluatorTest, TestHashLiterals)
     }
 }
 
+TEST_F(EvaluatorTest, TestHashIndexExpression)
+{
+    struct TestCase
+    {
+        std::string input;
+        int64_t expected;
+    };
+    std::vector<TestCase> tests{
+        {R"({"foo": 5}["foo"])", 5}, {R"(let key = "foo"; {"foo": 5}[key])", 5},
+        {R"({5: 5}[5])", 5},         {R"({true: 5}[true])", 5},
+        {R"({false: 5}[false])", 5},
+    };
+
+    for (auto &tt : tests)
+    {
+        auto evaluated = TestEval(tt.input);
+        EXPECT_TRUE(TestIntegerObject(evaluated, tt.expected));
+    }
+
+    std::vector<std::string> null_tests{
+        {R"({}["foo"])"},
+        {R"({"foo": 5}["bar"])"},
+    };
+
+    for (auto &tt : null_tests)
+    {
+        auto evaluated = TestEval(tt);
+        EXPECT_EQ(evaluated, evaluator::NULLL);
+    }
+}
+
 } // namespace

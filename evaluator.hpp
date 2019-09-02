@@ -62,6 +62,10 @@ EvalHashLiteral(std::shared_ptr<ast::HashLiteral> hash_literal,
                 std::shared_ptr<object::Environment> env);
 
 std::shared_ptr<object::Object>
+EvalHashIndexExpression(std::shared_ptr<object::Object> hash_obj,
+                        std::shared_ptr<object::Object> key);
+
+std::shared_ptr<object::Object>
 EvalIndexExpression(std::shared_ptr<object::Object> left,
                     std::shared_ptr<object::Object> index);
 

@@ -251,6 +251,9 @@ EvalIndexExpression(std::shared_ptr<object::Object> left,
     if (left->Type() == object::ARRAY_OBJ &&
         index->Type() == object::INTEGER_OBJ)
         return EvalArrayIndexExpression(left, index);
+    else if (left->Type() == object::HASH_OBJ)
+        return EvalHashIndexExpression(left, index);
+
     return NewError("index operation not supported: %s", left->Type());
 }
 
@@ -273,6 +276,24 @@ EvalArrayIndexExpression(std::shared_ptr<object::Object> array_obj,
             return NULLL;
     }
     return NewError("Couldn't unpack yer Array OBJ!");
+}
+
+std::shared_ptr<object::Object>
+EvalHashIndexExpression(std::shared_ptr<object::Object> hash_obj,
+                        std::shared_ptr<object::Object> key)
+{
+    std::shared_ptr<object::Hash> my_hash =
+        std::dynamic_pointer_cast<object::Hash>(hash_obj);
+
+    if (!IsHashable(key))
+        return NewError("Unusable as hash key: %s", key->Type());
+
+    object::HashKey hashed = MakeHashKey(key);
+    auto hpair_it = my_hash->pairs_.find(hashed);
+    if (hpair_it != my_hash->pairs_.end())
+        return hpair_it->second.value_;
+
+    return evaluator::NULLL;
 }
 
 std::shared_ptr<object::Object>
