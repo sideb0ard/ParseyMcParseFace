@@ -34,6 +34,7 @@ const TokenType RBRACE = "}";
 const TokenType LBRACKET = "[";
 const TokenType RBRACKET = "]";
 
+const TokenType FOR = "FOR";
 const TokenType FUNCTION = "FUNCTION";
 const TokenType LET = "LET";
 const TokenType TRUE = "TRUE";
@@ -44,6 +45,9 @@ const TokenType RETURN = "RETURN";
 
 const TokenType EQ = "==";
 const TokenType NOT_EQ = "!=";
+
+const TokenType INCREMENT = "++";
+const TokenType DECREMENT = "--";
 
 class Token
 {

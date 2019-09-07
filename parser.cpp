@@ -37,6 +37,8 @@ std::shared_ptr<ast::Statement> Parser::ParseStatement()
         return ParseLetStatement();
     else if (cur_token_.type_.compare(token::RETURN) == 0)
         return ParseReturnStatement();
+    else if (cur_token_.type_.compare(token::FOR) == 0)
+        return ParseForStatement();
     else
         return ParseExpressionStatement();
 }
@@ -54,7 +56,7 @@ std::shared_ptr<ast::LetStatement> Parser::ParseLetStatement()
     }
 
     stmt->name_ =
-        std::make_unique<ast::Identifier>(cur_token_, cur_token_.literal_);
+        std::make_shared<ast::Identifier>(cur_token_, cur_token_.literal_);
 
     if (!ExpectPeek(token::ASSIGN))
     {
@@ -84,6 +86,53 @@ std::shared_ptr<ast::ReturnStatement> Parser::ParseReturnStatement()
 
     if (PeekTokenIs(token::SEMICOLON))
         NextToken();
+
+    return stmt;
+}
+
+std::shared_ptr<ast::ForStatement> Parser::ParseForStatement()
+{
+    std::shared_ptr<ast::ForStatement> stmt =
+        std::make_shared<ast::ForStatement>(cur_token_);
+
+    // Starting condition //////////
+
+    if (!ExpectPeek(token::IDENT))
+    {
+        std::cout << "NO IDENT! - returning nullptr \n";
+        return nullptr;
+    }
+
+    stmt->iterator_ =
+        std::make_shared<ast::Identifier>(cur_token_, cur_token_.literal_);
+
+    if (!ExpectPeek(token::ASSIGN))
+    {
+        std::cout << "NO ASSIGN! - returning nullptr \n";
+        return nullptr;
+    }
+    NextToken();
+
+    stmt->iterator_value_ = ParseExpression(Precedence::LOWEST);
+
+    if (!ExpectPeek(token::SEMICOLON))
+    {
+        std::cout << "NO SEMICOLON! - returning nullptr \n";
+        return nullptr;
+    }
+    NextToken();
+
+    // Termination Condition /////////////
+    stmt->termination_condition_ = ParseExpression(Precedence::LOWEST);
+
+    // Increment Expression
+    stmt->increment_ = ParseExpression(Precedence::LOWEST);
+
+    // Body
+    if (!ExpectPeek(token::LBRACE))
+        return nullptr;
+
+    stmt->body_ = ParseBlockStatement();
 
     return stmt;
 }
@@ -203,6 +252,10 @@ std::shared_ptr<ast::Expression> Parser::ParseForPrefixExpression()
         return ParseIdentifier();
     else if (cur_token_.type_ == token::INT)
         return ParseIntegerLiteral();
+    else if (cur_token_.type_ == token::INCREMENT)
+        return ParsePrefixExpression();
+    else if (cur_token_.type_ == token::DECREMENT)
+        return ParsePrefixExpression();
     else if (cur_token_.type_ == token::BANG)
         return ParsePrefixExpression();
     else if (cur_token_.type_ == token::MINUS)

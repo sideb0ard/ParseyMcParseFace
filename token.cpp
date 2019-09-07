@@ -7,8 +7,8 @@
 namespace token
 {
 const std::unordered_map<std::string, TokenType> keywords{
-    {"fn", FUNCTION}, {"let", LET},   {"true", TRUE},    {"false", FALSE},
-    {"if", IF},       {"else", ELSE}, {"return", RETURN}};
+    {"else", ELSE}, {"false", FALSE}, {"for", FOR},   {"fn", FUNCTION},
+    {"if", IF},     {"let", LET},     {"true", TRUE}, {"return", RETURN}};
 
 TokenType LookupIdent(std::string ident)
 {

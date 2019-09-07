@@ -107,12 +107,30 @@ token::Token Lexer::NextToken()
         }
         break;
     case ('+'):
-        tok.type_ = token::PLUS;
-        tok.literal_ = current_char_;
+        if (PeekChar() == '+')
+        {
+            ReadChar();
+            tok.type_ = token::INCREMENT;
+            tok.literal_ = "++";
+        }
+        else
+        {
+            tok.type_ = token::PLUS;
+            tok.literal_ = current_char_;
+        }
         break;
     case ('-'):
-        tok.type_ = token::MINUS;
-        tok.literal_ = current_char_;
+        if (PeekChar() == '-')
+        {
+            ReadChar();
+            tok.type_ = token::DECREMENT;
+            tok.literal_ = "--";
+        }
+        else
+        {
+            tok.type_ = token::MINUS;
+            tok.literal_ = current_char_;
+        }
         break;
     case ('!'):
         if (PeekChar() == '=')

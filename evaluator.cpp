@@ -303,6 +303,10 @@ EvalPrefixExpression(std::string op, std::shared_ptr<object::Object> right)
         return EvalBangOperatorExpression(right);
     else if (op.compare("-") == 0)
         return EvalMinusPrefixOperatorExpression(right);
+    else if (op.compare("++") == 0)
+        return EvalIncrementOperatorExpression(right);
+    else if (op.compare("--") == 0)
+        return EvalDecrementOperatorExpression(right);
     else
         return NewError("unknown operator: %s %s ", op, right->Type());
 }
@@ -421,6 +425,32 @@ EvalMinusPrefixOperatorExpression(std::shared_ptr<object::Object> right)
     }
 
     return std::make_shared<object::Integer>(-i->value_);
+}
+
+std::shared_ptr<object::Object>
+EvalIncrementOperatorExpression(std::shared_ptr<object::Object> right)
+{
+    std::shared_ptr<object::Integer> i =
+        std::dynamic_pointer_cast<object::Integer>(right);
+    if (!i)
+    {
+        return NewError("unknown operator: ++%s", right->Type());
+    }
+
+    return std::make_shared<object::Integer>(++(i->value_));
+}
+
+std::shared_ptr<object::Object>
+EvalDecrementOperatorExpression(std::shared_ptr<object::Object> right)
+{
+    std::shared_ptr<object::Integer> i =
+        std::dynamic_pointer_cast<object::Integer>(right);
+    if (!i)
+    {
+        return NewError("unknown operator: --%s", right->Type());
+    }
+
+    return std::make_shared<object::Integer>(--(i->value_));
 }
 
 std::shared_ptr<object::Object>

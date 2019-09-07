@@ -38,6 +38,18 @@ std::string LetStatement::String() const
     return ss.str();
 }
 
+std::string ForStatement::String() const
+{
+    std::stringstream ss;
+    if (iterator_)
+        ss << TokenLiteral() << " " << iterator_->String() << " = ";
+    if (iterator_value_)
+        ss << iterator_value_->String();
+    ss << ";";
+
+    return ss.str();
+}
+
 std::string ReturnStatement::String() const
 {
     std::stringstream ss;

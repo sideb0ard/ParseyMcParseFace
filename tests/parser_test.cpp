@@ -49,6 +49,28 @@ bool TestLetStatement(std::shared_ptr<ast::Statement> s, std::string name)
     return true;
 }
 
+bool TestForStatement(std::shared_ptr<ast::Statement> s)
+{
+    std::cout << "FOR STATEMENT is " << s->TokenLiteral() << std::endl;
+
+    if (s->TokenLiteral().compare("for") != 0)
+        return false;
+
+    std::cout << "All good!\n";
+
+    std::cout << "s is of type " << typeid(s).name() << std::endl;
+
+    std::shared_ptr<ast::ForStatement> for_stmt =
+        std::dynamic_pointer_cast<ast::ForStatement>(s);
+    if (!for_stmt)
+        return false;
+    std::cout << "FOR CAST WAS All good!\n";
+
+    // TODO - TEST STUFF!
+
+    return true;
+}
+
 bool TestIdentifier(std::shared_ptr<ast::Expression> expr, std::string val)
 {
     std::shared_ptr<ast::Identifier> ident =
@@ -186,6 +208,42 @@ TEST_F(ParserTest, TestLetStatements)
             FAIL() << "program->statements_[0] is not an LetStatement";
 
         EXPECT_TRUE(TestLiteralExpression(stmt->value_, tt.expected_val));
+    }
+}
+
+TEST_F(ParserTest, TestForStatements)
+{
+    struct TestCase
+    {
+        std::string input;
+        std::string expected_ident;
+        int64_t expected_val;
+    };
+    using namespace std::string_literals;
+    std::vector<TestCase> tests = {
+        {"for (i = 0; i < 5; i++) {}", "i", (int64_t)0},
+    };
+
+    for (auto &tt : tests)
+    {
+
+        std::cout << "Parsey FOR Test setup!\n";
+        std::unique_ptr<lexer::Lexer> lex =
+            std::make_unique<lexer::Lexer>(tt.input);
+        std::unique_ptr<parser::Parser> parsley =
+            std::make_unique<parser::Parser>(std::move(lex));
+        std::shared_ptr<ast::Program> program = parsley->ParseProgram();
+        EXPECT_FALSE(parsley->CheckErrors());
+
+        EXPECT_TRUE(TestForStatement(program->statements_[0]));
+
+        std::shared_ptr<ast::LetStatement> stmt =
+            std::dynamic_pointer_cast<ast::LetStatement>(
+                program->statements_[0]);
+        if (!stmt)
+            FAIL() << "program->statements_[0] is not an LetStatement";
+
+        // EXPECT_TRUE(TestLiteralExpression(stmt->value_, tt.expected_val));
     }
 }
 
@@ -424,10 +482,11 @@ TEST_F(ParserTest, TestPrefixExpressions)
         std::string op;
         std::variant<int64_t, std::string, bool> value;
     };
-    std::vector<TestCase> prefix_tests{{"!5", "!", (int64_t)5},
-                                       {"-15", "-", (int64_t)15},
-                                       {"!true;", "!", true},
-                                       {"!false;", "!", false}};
+    std::vector<TestCase> prefix_tests{
+        {"!5", "!", (int64_t)5},     {"-15", "-", (int64_t)15},
+        {"++15", "++", (int64_t)15}, {"--15", "--", (int64_t)15},
+        {"!true;", "!", true},       {"!false;", "!", false},
+    };
     for (auto tt : prefix_tests)
     {
         std::unique_ptr<lexer::Lexer> lex =
@@ -452,7 +511,6 @@ TEST_F(ParserTest, TestPrefixExpressions)
         ASSERT_EQ(expr->operator_, tt.op);
         ASSERT_TRUE(TestLiteralExpression(expr->right_, tt.value));
 
-        std::cout << "JHER!\n";
         std::cout << program->String() << std::endl;
     }
 }

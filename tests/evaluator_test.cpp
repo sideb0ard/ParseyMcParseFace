@@ -585,4 +585,26 @@ TEST_F(EvaluatorTest, TestHashIndexExpression)
     }
 }
 
+TEST_F(EvaluatorTest, TestIncrementOperators)
+{
+    struct TestCase
+    {
+        std::string input;
+        int64_t expected;
+    };
+    std::vector<TestCase> tests{
+        {"++3", 4},
+        {"--3", 2},
+        {"++0", 1},
+        {"--0", -1},
+        {"let i = 3; --i", 2},
+        {"let i = 3; ++i", 4},
+    };
+
+    for (auto tt : tests)
+    {
+        EXPECT_TRUE(TestIntegerObject(TestEval(tt.input), tt.expected));
+    }
+}
+
 } // namespace

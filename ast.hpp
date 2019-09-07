@@ -141,7 +141,7 @@ class FunctionLiteral : public Expression
 
   public:
     std::vector<std::shared_ptr<Identifier>> parameters_;
-    std::shared_ptr<BlockStatement> body_;
+    std::shared_ptr<BlockStatement> body_{nullptr};
 };
 
 class CallExpression : public Expression
@@ -156,7 +156,7 @@ class CallExpression : public Expression
     std::string String() const override;
 
   public:
-    std::shared_ptr<Expression> function_;
+    std::shared_ptr<Expression> function_{nullptr};
     std::vector<std::shared_ptr<Expression>> arguments_;
 };
 
@@ -206,8 +206,8 @@ class IndexExpression : public Expression
     std::string String() const override;
 
   public:
-    std::shared_ptr<Expression> left_;
-    std::shared_ptr<Expression> index_;
+    std::shared_ptr<Expression> left_{nullptr};
+    std::shared_ptr<Expression> index_{nullptr};
 };
 
 ///////////////////////////////////////////////////////////////
@@ -237,7 +237,7 @@ class ReturnStatement : public Statement
     std::string String() const override;
 
   public:
-    std::shared_ptr<Expression> return_value_;
+    std::shared_ptr<Expression> return_value_{nullptr};
 };
 
 class ExpressionStatement : public Statement
@@ -247,7 +247,7 @@ class ExpressionStatement : public Statement
     std::string String() const override;
 
   public:
-    std::shared_ptr<Expression> expression_;
+    std::shared_ptr<Expression> expression_{nullptr};
 };
 
 class BlockStatement : public Statement
@@ -258,6 +258,23 @@ class BlockStatement : public Statement
 
   public:
     std::vector<std::shared_ptr<Statement>> statements_;
+};
+
+class ForStatement : public Statement
+{
+  public:
+    explicit ForStatement(Token toke) : Statement(toke) {}
+    std::string String() const override;
+
+  public:
+    std::shared_ptr<Identifier> iterator_{nullptr};
+    std::shared_ptr<Expression> iterator_value_{nullptr};
+
+    std::shared_ptr<Expression> termination_condition_{nullptr};
+
+    std::shared_ptr<Expression> increment_{nullptr};
+
+    std::shared_ptr<BlockStatement> body_;
 };
 
 // ROOT //////////////////////

@@ -47,6 +47,12 @@ EvalBangOperatorExpression(std::shared_ptr<object::Object> right);
 std::shared_ptr<object::Object>
 EvalMinusPrefixOperatorExpression(std::shared_ptr<object::Object> right);
 
+std::shared_ptr<object::Object>
+EvalDecrementOperatorExpression(std::shared_ptr<object::Object> right);
+
+std::shared_ptr<object::Object>
+EvalIncrementOperatorExpression(std::shared_ptr<object::Object> right);
+
 std::shared_ptr<object::Boolean> NativeBoolToBooleanObject(bool input);
 
 std::shared_ptr<object::Object>

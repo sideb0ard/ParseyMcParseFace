@@ -39,6 +39,8 @@ if (5 < 10) {
 "foo bar"
 [1, 2];
 {"foo": "bar"}
+++3;
+--3;
 )";
 
     std::vector<std::pair<token::TokenType, std::string>> testTokens = {
@@ -85,6 +87,9 @@ if (5 < 10) {
         {token::SEMICOLON, ";"},    {token::LBRACE, "{"},
         {token::STRING, "foo"},     {token::COLON, ":"},
         {token::STRING, "bar"},     {token::RBRACE, "}"},
+        {token::INCREMENT, "++"},   {token::INT, "3"},
+        {token::SEMICOLON, ";"},    {token::DECREMENT, "--"},
+        {token::INT, "3"},          {token::SEMICOLON, ";"},
         {token::EOFF, ""},
     };
 
@@ -93,7 +98,7 @@ if (5 < 10) {
         std::cout << "Parsey setup!\n";
         lex = std::make_unique<lexer::Lexer>(input);
     }
-};
+}; // namespace
 
 TEST_F(LexerTest, TestNextToken)
 {

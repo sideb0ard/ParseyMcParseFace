@@ -50,7 +50,10 @@ class Parser
     std::shared_ptr<ast::Statement> ParseStatement();
     std::shared_ptr<ast::LetStatement> ParseLetStatement();
     std::shared_ptr<ast::ReturnStatement> ParseReturnStatement();
+    std::shared_ptr<ast::ForStatement> ParseForStatement();
+
     std::shared_ptr<ast::ExpressionStatement> ParseExpressionStatement();
+
     std::shared_ptr<ast::Expression> ParseExpression(Precedence p);
     std::shared_ptr<ast::Expression> ParseIdentifier();
     std::shared_ptr<ast::Expression> ParseIntegerLiteral();
