@@ -41,6 +41,7 @@ if (5 < 10) {
 {"foo": "bar"}
 ++3;
 --3;
+for (i = 0; i < 10; ++i) {};
 )";
 
     std::vector<std::pair<token::TokenType, std::string>> testTokens = {
@@ -90,6 +91,14 @@ if (5 < 10) {
         {token::INCREMENT, "++"},   {token::INT, "3"},
         {token::SEMICOLON, ";"},    {token::DECREMENT, "--"},
         {token::INT, "3"},          {token::SEMICOLON, ";"},
+        {token::FOR, "for"},        {token::LPAREN, "("},
+        {token::IDENT, "i"},        {token::ASSIGN, "="},
+        {token::INT, "0"},          {token::SEMICOLON, ";"},
+        {token::IDENT, "i"},        {token::LT, "<"},
+        {token::INT, "10"},         {token::SEMICOLON, ";"},
+        {token::INCREMENT, "++"},   {token::IDENT, "i"},
+        {token::RPAREN, ")"},       {token::LBRACE, "{"},
+        {token::RBRACE, "}"},       {token::SEMICOLON, ";"},
         {token::EOFF, ""},
     };
 

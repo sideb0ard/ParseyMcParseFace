@@ -221,27 +221,29 @@ TEST_F(ParserTest, TestForStatements)
     };
     using namespace std::string_literals;
     std::vector<TestCase> tests = {
-        {"for (i = 0; i < 5; i++) {}", "i", (int64_t)0},
+        {"for (i = 0; i < 5; ++i) {}", "i", (int64_t)0},
     };
 
     for (auto &tt : tests)
     {
 
         std::cout << "Parsey FOR Test setup!\n";
+        std::cout << "Testing: " << tt.input << std::endl;
+
         std::unique_ptr<lexer::Lexer> lex =
             std::make_unique<lexer::Lexer>(tt.input);
         std::unique_ptr<parser::Parser> parsley =
             std::make_unique<parser::Parser>(std::move(lex));
         std::shared_ptr<ast::Program> program = parsley->ParseProgram();
-        EXPECT_FALSE(parsley->CheckErrors());
+        ASSERT_FALSE(parsley->CheckErrors());
 
         EXPECT_TRUE(TestForStatement(program->statements_[0]));
 
-        std::shared_ptr<ast::LetStatement> stmt =
-            std::dynamic_pointer_cast<ast::LetStatement>(
+        std::shared_ptr<ast::ForStatement> stmt =
+            std::dynamic_pointer_cast<ast::ForStatement>(
                 program->statements_[0]);
         if (!stmt)
-            FAIL() << "program->statements_[0] is not an LetStatement";
+            FAIL() << "program->statements_[0] is not an ForStatement";
 
         // EXPECT_TRUE(TestLiteralExpression(stmt->value_, tt.expected_val));
     }

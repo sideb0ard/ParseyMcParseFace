@@ -38,7 +38,10 @@ std::shared_ptr<ast::Statement> Parser::ParseStatement()
     else if (cur_token_.type_.compare(token::RETURN) == 0)
         return ParseReturnStatement();
     else if (cur_token_.type_.compare(token::FOR) == 0)
+    {
+        std::cout << "Found FOR statement!\n";
         return ParseForStatement();
+    }
     else
         return ParseExpressionStatement();
 }
@@ -97,14 +100,28 @@ std::shared_ptr<ast::ForStatement> Parser::ParseForStatement()
 
     // Starting condition //////////
 
+    if (!ExpectPeek(token::LPAREN))
+    {
+        std::cout << "NO LPAREN! - returning nullptr \n";
+        return nullptr;
+    }
+
     if (!ExpectPeek(token::IDENT))
     {
         std::cout << "NO IDENT! - returning nullptr \n";
         return nullptr;
     }
 
+    std::cout << "CUR TOKEN LITERAL is " << cur_token_.literal_ << std::endl;
+
     stmt->iterator_ =
         std::make_shared<ast::Identifier>(cur_token_, cur_token_.literal_);
+
+    std::cout << "My iterator Identifier is " << stmt->iterator_->String()
+              << std::endl;
+
+    std::cout << "All good so far - CUR TOKEN is " << cur_token_.literal_
+              << std::endl;
 
     if (!ExpectPeek(token::ASSIGN))
     {
@@ -112,6 +129,8 @@ std::shared_ptr<ast::ForStatement> Parser::ParseForStatement()
         return nullptr;
     }
     NextToken();
+    std::cout << "All good so far - CUR TOKEN is " << cur_token_.literal_
+              << std::endl;
 
     stmt->iterator_value_ = ParseExpression(Precedence::LOWEST);
 
@@ -122,14 +141,32 @@ std::shared_ptr<ast::ForStatement> Parser::ParseForStatement()
     }
     NextToken();
 
+    std::cout << "All good so far - IDENT val is "
+              << stmt->iterator_value_->String() << std::endl;
+
+    std::cout << "SOFARLYSOGOOD - looking for TERMINATION\n";
     // Termination Condition /////////////
+    std::cout << "Looking for TERMINATION CONDITION - CUR TOKEN is "
+              << cur_token_.literal_ << std::endl;
     stmt->termination_condition_ = ParseExpression(Precedence::LOWEST);
+
+    std::cout << "GOT TERMINATION CONDITION - "
+              << stmt->termination_condition_->String() << ". CUR TOKEN is "
+              << cur_token_.literal_ << " Now looking for INCREMENT exression"
+              << std::endl;
+
+    NextToken();
+    NextToken();
+    std::cout << " __ POSITION __ cur_token:" << cur_token_.literal_
+              << " Peek_token:" << peek_token_.literal_ << std::endl;
 
     // Increment Expression
     stmt->increment_ = ParseExpression(Precedence::LOWEST);
+    std::cout << "All good so far - INCR is " << stmt->increment_->String()
+              << ". CUR TOKEN is " << cur_token_.literal_ << std::endl;
 
     // Body
-    if (!ExpectPeek(token::LBRACE))
+    if (!ExpectPeek(token::RPAREN))
         return nullptr;
 
     stmt->body_ = ParseBlockStatement();
