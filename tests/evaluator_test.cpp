@@ -507,6 +507,13 @@ TEST_F(EvaluatorTest, TestBuiltInFunctions)
     }
 }
 
+TEST_F(EvaluatorTest, TestForLoop)
+{
+    std::string input = R"(for (i = 0; i < 5; i++) { puts(i); })";
+
+    std::shared_ptr<object::Object> evaluated = TestEval(input);
+}
+
 TEST_F(EvaluatorTest, TestHashLiterals)
 {
     std::string input = R"(let two = "two";

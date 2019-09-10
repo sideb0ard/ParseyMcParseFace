@@ -26,6 +26,10 @@ EvalBlockStatement(std::shared_ptr<ast::BlockStatement> block,
                    std::shared_ptr<object::Environment> env);
 
 std::shared_ptr<object::Object>
+EvalForStatement(std::shared_ptr<ast::ForStatement> for_loop,
+                 std::shared_ptr<object::Environment> env);
+
+std::shared_ptr<object::Object>
 EvalPrefixExpression(std::string op, std::shared_ptr<object::Object> obj);
 
 std::shared_ptr<object::Object>

@@ -66,8 +66,6 @@ bool TestForStatement(std::shared_ptr<ast::Statement> s)
         return false;
     std::cout << "FOR CAST WAS All good!\n";
 
-    // TODO - TEST STUFF!
-
     return true;
 }
 
@@ -216,12 +214,17 @@ TEST_F(ParserTest, TestForStatements)
     struct TestCase
     {
         std::string input;
-        std::string expected_ident;
-        int64_t expected_val;
+        std::string expected_it_ident;
+        int64_t expected_it_val;
+        std::string term_condition;
+        std::string increment;
     };
     using namespace std::string_literals;
     std::vector<TestCase> tests = {
-        {"for (i = 0; i < 5; ++i) {}", "i", (int64_t)0},
+        {"for (i = 0; i < 5; ++i) { puts(i); }", "i", (int64_t)0, "(i<5)",
+         "(++i)"},
+        {"for (j = 5; j > 0; --j) { puts(j); }", "j", (int64_t)5, "(j>0)",
+         "(--j)"},
     };
 
     for (auto &tt : tests)
@@ -245,7 +248,14 @@ TEST_F(ParserTest, TestForStatements)
         if (!stmt)
             FAIL() << "program->statements_[0] is not an ForStatement";
 
-        // EXPECT_TRUE(TestLiteralExpression(stmt->value_, tt.expected_val));
+        std::cout << "FOOOOR!:" << stmt->String() << std::endl;
+
+        EXPECT_TRUE(TestIdentifier(stmt->iterator_, tt.expected_it_ident));
+        EXPECT_TRUE(
+            TestLiteralExpression(stmt->iterator_value_, tt.expected_it_val));
+
+        EXPECT_EQ(stmt->termination_condition_->String(), tt.term_condition);
+        EXPECT_EQ(stmt->increment_->String(), tt.increment);
     }
 }
 

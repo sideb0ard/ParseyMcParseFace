@@ -168,6 +168,10 @@ std::shared_ptr<ast::ForStatement> Parser::ParseForStatement()
     // Body
     if (!ExpectPeek(token::RPAREN))
         return nullptr;
+    NextToken();
+
+    std::cout << "pARSE BLOCK! "
+              << ". CUR TOKEN is " << cur_token_.literal_ << std::endl;
 
     stmt->body_ = ParseBlockStatement();
 

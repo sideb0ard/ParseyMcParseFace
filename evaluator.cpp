@@ -85,6 +85,13 @@ std::shared_ptr<object::Object> Eval(std::shared_ptr<ast::Node> node,
         return EvalBlockStatement(block_statement_node, env);
     }
 
+    std::shared_ptr<ast::ForStatement> for_statement_node =
+        std::dynamic_pointer_cast<ast::ForStatement>(node);
+    if (for_statement_node)
+    {
+        return EvalForStatement(for_statement_node, env);
+    }
+
     std::shared_ptr<ast::ExpressionStatement> expr_statement_node =
         std::dynamic_pointer_cast<ast::ExpressionStatement>(node);
     if (expr_statement_node)
@@ -309,6 +316,35 @@ EvalPrefixExpression(std::string op, std::shared_ptr<object::Object> right)
         return EvalDecrementOperatorExpression(right);
     else
         return NewError("unknown operator: %s %s ", op, right->Type());
+}
+
+std::shared_ptr<object::Object>
+EvalForStatement(std::shared_ptr<ast::ForStatement> for_loop,
+                 std::shared_ptr<object::Environment> env)
+{
+    std::cout << "I'm A FOR LOOPO!\n";
+
+    std::shared_ptr<object::Environment> new_env =
+        std::make_shared<object::Environment>(env);
+
+    auto val = Eval(for_loop->iterator_value_, env);
+    if (IsError(val))
+    {
+        return val;
+    }
+    new_env->Set(for_loop->iterator_->value_, val);
+
+    std::cout << "SET " << for_loop->iterator_->String() << " with "
+              << val->Inspect() << std::endl;
+
+    std::shared_ptr<object::Object> result;
+    while (IsTruthy(Eval(for_loop->termination_condition_, new_env)))
+    {
+        result = Eval(for_loop->body_, new_env);
+        Eval(for_loop->increment_, new_env);
+    }
+
+    return result;
 }
 
 std::shared_ptr<object::Object>

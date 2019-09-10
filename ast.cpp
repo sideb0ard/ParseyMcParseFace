@@ -41,11 +41,20 @@ std::string LetStatement::String() const
 std::string ForStatement::String() const
 {
     std::stringstream ss;
+    ss << TokenLiteral() << "(";
     if (iterator_)
-        ss << TokenLiteral() << " " << iterator_->String() << " = ";
+        ss << iterator_->String() << " = ";
     if (iterator_value_)
         ss << iterator_value_->String();
     ss << ";";
+    if (termination_condition_)
+        ss << termination_condition_->String();
+    ss << ";";
+    if (increment_)
+        ss << increment_->String();
+    ss << ")";
+    if (body_)
+        ss << body_->String();
 
     return ss.str();
 }
