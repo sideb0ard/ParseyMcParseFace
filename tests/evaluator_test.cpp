@@ -509,9 +509,28 @@ TEST_F(EvaluatorTest, TestBuiltInFunctions)
 
 TEST_F(EvaluatorTest, TestForLoop)
 {
-    std::string input = R"(for (i = 0; i < 5; i++) { puts(i); })";
+    struct TestCase
+    {
+        std::string input;
+        std::string expected;
+    };
 
-    std::shared_ptr<object::Object> evaluated = TestEval(input);
+    std::vector<TestCase> tests{
+        {R"(for (i = 0; i < 5; ++i) { puts(i); i; })", "5"},
+        {R"(for (i = 5; i > 0; --i) { puts(i); i; })", "0"},
+        {R"(let i = 7; let x = 10; for (i = 5; i > 0; --i) { let x = x + i; puts(x); }; i)",
+         "7"},
+        {R"(let x = 10; for (i = 5; i > 0; --i) { let x = x + i; puts(x); i; }; i;)",
+         "ERROR: identifier not found: i"},
+        {R"(let x = 10; for (i = 5; i > 0; --i) { let x = x + x; puts(x); x; })",
+         "320"},
+    };
+
+    for (auto &tt : tests)
+    {
+        std::shared_ptr<object::Object> evaluated = TestEval(tt.input);
+        EXPECT_EQ(evaluated->Inspect(), tt.expected);
+    }
 }
 
 TEST_F(EvaluatorTest, TestHashLiterals)
